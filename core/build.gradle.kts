@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -6,11 +7,14 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    id("module.publication")
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-
+    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.28.0"
 }
+
+group = "com.helloanwar.mvvmate"
+version = "0.0.1"
 
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
@@ -36,6 +40,7 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        publishLibraryVariants("release", "debug")
     }
 
     jvm("desktop")
@@ -114,4 +119,48 @@ android {
     dependencies {
         debugImplementation(compose.uiTooling)
     }
+}
+
+mavenPublishing {
+    // Define coordinates for the published artifact
+    coordinates(
+        groupId = "com.helloanwar.mvvmate",
+        artifactId = "core",
+        version = "0.0.1"
+    )
+
+    // Configure POM metadata for the published artifact
+    pom {
+        name.set("CMP Library for MVVM state management")
+        description.set("This library is a companion library for MVVM state management")
+        inceptionYear.set("2024")
+        url.set("https://github.com/anwarpro/mvvmate")
+
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/licenses/MIT")
+            }
+        }
+
+        // Specify developer information
+        developers {
+            developer {
+                id.set("anwarpro")
+                name.set("Mohammad Anwar")
+                email.set("anwar.hussen.pro@gmail.com")
+            }
+        }
+
+        // Specify SCM information
+        scm {
+            url.set("https://github.com/anwarpro/mvvmate")
+        }
+    }
+
+    // Configure publishing to Maven Central
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    // Enable GPG signing for all publications
+    signAllPublications()
 }

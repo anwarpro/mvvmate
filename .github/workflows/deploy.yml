@@ -20,16 +20,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - target: publishIosArm64PublicationToSonatypeRepository
+          - target: publishAndReleaseToMavenCentral
             os: macos-latest
-          - target: publishAndroidReleasePublicationToSonatypeRepository
-            os: ubuntu-latest
-          - target: publishJvmPublicationToSonatypeRepository
-            os: ubuntu-latest
-          #          - target: publishLinuxX64PublicationToSonatypeRepository
-          #            os: ubuntu-latest
-          - target: publishKotlinMultiplatformPublicationToSonatypeRepository
-            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +47,7 @@ jobs:
         with:
           arguments: |
             ${{ matrix.target }}
-            closeSonatypeStagingRepository
+            --no-configuration-cache
             -Psigning.gnupg.passphrase='${{secrets.OSSRH_GPG_SECRET_KEY_PASSWORD}}'
             -Psigning.gnupg.keyName='${{secrets.OSSRH_GPG_SECRET_KEY_ID}}'
             -PsonatypeUsername='${{secrets.OSSRH_USERNAME}}'
