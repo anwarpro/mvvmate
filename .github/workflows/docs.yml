@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Validate Gradle Wrapper
@@ -25,7 +25,7 @@ jobs:
         with:
           path: |
             ~/.konan
-          key: macos-latest-${{ hashFiles('**/.lock') }}
+          key: ubuntu-latest-${{ hashFiles('**/.lock') }}
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
