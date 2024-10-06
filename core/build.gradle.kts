@@ -3,12 +3,14 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.net.URL
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.dokka)
     id("maven-publish")
     id("com.vanniktech.maven.publish") version "0.29.0"
 }
@@ -160,4 +162,28 @@ mavenPublishing {
 
     // Enable GPG signing for all publications
     signAllPublications()
+}
+
+tasks.dokkaHtml {
+    outputDirectory.set(buildDir.resolve("dokka"))
+    dokkaSourceSets {
+        configureEach {
+            // Links to external documentation (e.g., coroutines, Android APIs, etc.)
+            externalDocumentationLink {
+                url.set(URL("https://kotlinlang.org/api/latest/jvm/stdlib/"))
+            }
+        }
+    }
+}
+
+tasks.dokkaHtml.configure {
+    dokkaSourceSets {
+        named("commonMain") {
+            sourceLink {
+                localDirectory.set(file("src/commonMain/kotlin"))
+                remoteUrl.set(URL("https://github.com/anwarpro/mvvmate/blob/main/src/commonMain/kotlin"))
+                remoteLineSuffix.set("#L")
+            }
+        }
+    }
 }
