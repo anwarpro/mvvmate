@@ -1,0 +1,31 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:com.helloanwar.mvvmate.core////PointingToDeclaration/core/com.helloanwar.mvvmate.core/index.html
+$dokka.location:com.helloanwar.mvvmate.core//getPlatform/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/get-platform.html
+$dokka.location:com.helloanwar.mvvmate.core/AndroidPlatform///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-android-platform/index.html
+$dokka.location:com.helloanwar.mvvmate.core/AndroidPlatform/AndroidPlatform/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-android-platform/-android-platform.html
+$dokka.location:com.helloanwar.mvvmate.core/AndroidPlatform/name/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-android-platform/name.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModel///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model/index.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModel/BaseViewModel/#TypeParam(bounds=[com.helloanwar.mvvmate.core.UiState])/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model/-base-view-model.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModel/handleAction/#TypeParam(bounds=[com.helloanwar.mvvmate.core.UiAction])/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model/handle-action.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModel/onAction/#TypeParam(bounds=[com.helloanwar.mvvmate.core.UiAction])/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model/on-action.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModel/state/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model/state.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModelWithEffect///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model-with-effect/index.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModelWithEffect/BaseViewModelWithEffect/#TypeParam(bounds=[com.helloanwar.mvvmate.core.UiState])/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model-with-effect/-base-view-model-with-effect.html
+$dokka.location:com.helloanwar.mvvmate.core/BaseViewModelWithEffect/sideEffects/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-base-view-model-with-effect/side-effects.html
+$dokka.location:com.helloanwar.mvvmate.core/IOSPlatform///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-i-o-s-platform/index.html
+$dokka.location:com.helloanwar.mvvmate.core/IOSPlatform/IOSPlatform/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-i-o-s-platform/-i-o-s-platform.html
+$dokka.location:com.helloanwar.mvvmate.core/IOSPlatform/name/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-i-o-s-platform/name.html
+$dokka.location:com.helloanwar.mvvmate.core/JVMPlatform///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-j-v-m-platform/index.html
+$dokka.location:com.helloanwar.mvvmate.core/JVMPlatform/JVMPlatform/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-j-v-m-platform/-j-v-m-platform.html
+$dokka.location:com.helloanwar.mvvmate.core/JVMPlatform/name/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-j-v-m-platform/name.html
+$dokka.location:com.helloanwar.mvvmate.core/Platform///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-platform/index.html
+$dokka.location:com.helloanwar.mvvmate.core/Platform/name/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-platform/name.html
+$dokka.location:com.helloanwar.mvvmate.core/UiAction///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-ui-action/index.html
+$dokka.location:com.helloanwar.mvvmate.core/UiEffect///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-ui-effect/index.html
+$dokka.location:com.helloanwar.mvvmate.core/UiState///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-ui-state/index.html
+$dokka.location:com.helloanwar.mvvmate.core/WasmPlatform///PointingToDeclaration/core/com.helloanwar.mvvmate.core/-wasm-platform/index.html
+$dokka.location:com.helloanwar.mvvmate.core/WasmPlatform/WasmPlatform/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-wasm-platform/-wasm-platform.html
+$dokka.location:com.helloanwar.mvvmate.core/WasmPlatform/name/#/PointingToDeclaration/core/com.helloanwar.mvvmate.core/-wasm-platform/name.html
+com.helloanwar.mvvmate.core
+
