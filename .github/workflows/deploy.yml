@@ -33,8 +33,10 @@ jobs:
           passphrase: ${{ secrets.SIGNING_KEY_PASSWORD }}
 
       - name: Export gpg key
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
         run: |
-          gpg --export-secret-keys -o ${HOME}/secring.gpg
+          gpg --export-secret-keys $SIGNING_KEY_ID -o ${HOME}/secring.gpg
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
