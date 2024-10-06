@@ -13,9 +13,6 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.29.0"
 }
 
-group = "com.helloanwar.mvvmate"
-version = "0.0.2"
-
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -126,7 +123,7 @@ mavenPublishing {
     coordinates(
         groupId = "com.helloanwar.mvvmate",
         artifactId = "core",
-        version = "0.0.1"
+        version = "0.0.2"
     )
 
     // Configure POM metadata for the published artifact
