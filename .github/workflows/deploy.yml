@@ -14,11 +14,23 @@ permissions:
 
 jobs:
   build:
+    uses: ./.github/workflows/gradle.yml
+  deploy:
+    needs: build
     name: Build
     runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.konan
+          key: macos-latest-${{ hashFiles('**/.lock') }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
