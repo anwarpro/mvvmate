@@ -8,7 +8,7 @@ import java.net.URL
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.dokka)
+//    alias(libs.plugins.dokka)
     id("maven-publish")
     id("com.vanniktech.maven.publish") version "0.29.0"
 }
@@ -57,7 +57,7 @@ kotlin {
         val desktopMain by getting
 
         androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
+//            implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
             implementation(libs.androidx.lifecycle.viewmodel)
@@ -99,9 +99,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
     }
     dependencies {
 
@@ -152,6 +149,7 @@ mavenPublishing {
     signAllPublications()
 }
 
+/*
 tasks.dokkaHtml {
     outputDirectory.set(buildDir.resolve("dokka"))
     dokkaSourceSets {
@@ -174,4 +172,4 @@ tasks.dokkaHtml.configure {
             }
         }
     }
-}
+}*/
