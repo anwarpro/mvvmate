@@ -30,3 +30,6 @@ dependencyResolutionManagement {
 
 include(":composeApp")
 include(":core")
+include(":network")
+include(":actions")
+include(":network-actions")
