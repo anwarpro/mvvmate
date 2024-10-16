@@ -125,7 +125,7 @@ mavenPublishing {
     coordinates(
         groupId = "com.helloanwar.mvvmate",
         artifactId = "core",
-        version = "0.0.2"
+        version = libs.versions.mvvmate.version.get()
     )
 
     // Configure POM metadata for the published artifact
@@ -163,6 +163,8 @@ mavenPublishing {
     // Enable GPG signing for all publications
     signAllPublications()
 }
+
+val previousVersionsDirectory = project.rootProject.projectDir.resolve("previousDocVersions").invariantSeparatorsPath
 
 tasks.dokkaHtml {
     outputDirectory.set(buildDir.resolve("dokka"))

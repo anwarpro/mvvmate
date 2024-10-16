@@ -109,7 +109,7 @@ mavenPublishing {
     coordinates(
         groupId = "com.helloanwar.mvvmate",
         artifactId = "network",
-        version = "0.0.2"
+        version = libs.versions.mvvmate.version.get()
     )
 
     // Configure POM metadata for the published artifact
