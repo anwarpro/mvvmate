@@ -8,8 +8,6 @@ import java.net.URL
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dokka)
     id("maven-publish")
     id("com.vanniktech.maven.publish") version "0.29.0"
@@ -59,28 +57,17 @@ kotlin {
         val desktopMain by getting
 
         androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
+
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
-            implementation(libs.androidx.lifecycle.runtime.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
-
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
         }
         desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
+//            implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
     }
@@ -112,11 +99,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures {
-        compose = true
-    }
+
     dependencies {
-        debugImplementation(compose.uiTooling)
+//        debugImplementation(compose.uiTooling)
     }
 }
 
