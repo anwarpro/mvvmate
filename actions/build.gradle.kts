@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
 //    alias(libs.plugins.dokka)
     id("maven-publish")
-    id("com.vanniktech.maven.publish") version "0.29.0"
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 kotlin {
