@@ -1,5 +1,5 @@
 
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
@@ -7,7 +7,7 @@ import java.net.URL
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.dokka)
     alias(libs.plugins.vanniktech.mavenPublish)
 }
@@ -31,12 +31,16 @@ kotlin {
         binaries.executable()
     }
 
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+    androidLibrary {
+        namespace = "com.helloanwar.mvvmate.core"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+
+        compilations.configureEach {
+            compilerOptions.configure {
+                jvmTarget.set(JvmTarget.JVM_11)
+            }
         }
-        publishLibraryVariants("release", "debug")
     }
 
     jvm("desktop")
@@ -69,37 +73,6 @@ kotlin {
 //            implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
-    }
-}
-
-android {
-    namespace = "com.helloanwar.mvvmate.core"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    dependencies {
-//        debugImplementation(compose.uiTooling)
     }
 }
 

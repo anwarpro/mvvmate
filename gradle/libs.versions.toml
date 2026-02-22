@@ -4,21 +4,21 @@ android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
 mvvmate-version = "0.2.0"
-androidx-activityCompose = "1.10.1"
+androidx-activityCompose = "1.12.4"
 androidx-appcompat = "1.7.1"
-androidx-constraintlayout = "2.1.4"
-androidx-core-ktx = "1.16.0"
-androidx-espresso-core = "3.6.1"
+androidx-constraintlayout = "2.2.1"
+androidx-core-ktx = "1.17.0"
+androidx-espresso-core = "3.7.0"
 androidx-lifecycle = "2.9.6"
-androidx-material = "1.12.0"
-androidx-test-junit = "1.2.1"
+androidx-material = "1.13.0"
+androidx-test-junit = "1.3.0"
 compose-plugin = "1.10.1"
 junit = "4.13.2"
-kotlin = "2.2.20"
+kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
-jreleaser = "1.7.0"
-dokka = "1.9.20"
-vanniktechMavenPublish = "0.34.0"
+jreleaser = "1.22.0"
+dokka = "2.1.0"
+vanniktechMavenPublish = "0.36.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -40,6 +40,7 @@ kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

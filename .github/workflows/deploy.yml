@@ -7,7 +7,9 @@
 
 name: Deploy to central
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
