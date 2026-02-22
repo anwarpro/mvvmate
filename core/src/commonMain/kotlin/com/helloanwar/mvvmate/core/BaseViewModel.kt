@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
  * This class holds the common logic for state management using [StateFlow] and
  * provides a mechanism to handle actions asynchronously using Kotlin coroutines.
  *
+ * Integrates with [MvvMate.logger] for automatic action, state, and error logging.
+ *
  * @param S The type of UI state that this ViewModel manages. It should implement [UiState].
  * @param A The type of user actions (intents) that this ViewModel responds to. It should implement [UiAction].
  * @property initialState The initial state of the ViewModel when it is created.
@@ -29,12 +31,23 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
     val state: StateFlow<S> get() = _state
 
     /**
+     * Name used in log messages. Defaults to the class simple name.
+     */
+    protected open val logTag: String
+        get() = this::class.simpleName ?: "ViewModel"
+
+    /**
      * Method to update the current state of the UI.
      *
      * @param reducer A lambda that defines how to modify the state.
      */
     protected fun updateState(reducer: S.() -> S) {
+        val oldState = _state.value
         _state.update { it.reducer() }
+        val newState = _state.value
+        if (MvvMate.isDebug && oldState != newState) {
+            MvvMate.logger.logStateChange(logTag, oldState, newState)
+        }
     }
 
     /**
@@ -44,12 +57,14 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
      * @param action The user action to handle.
      */
     fun handleAction(action: A) {
+        MvvMate.logger.logAction(logTag, action)
         viewModelScope.launch {
             try {
                 onAction(action)
             } catch (e: CancellationException) {
                 throw e // Never swallow CancellationException
             } catch (e: Exception) {
+                MvvMate.logger.logError(logTag, e, "onAction(${action::class.simpleName})")
                 onError(action, e)
             }
         }

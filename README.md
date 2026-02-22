@@ -10,10 +10,11 @@ A minimal, type-safe state management library for **Compose Multiplatform**, bui
 ## Why MVVMate?
 
 - **Zero boilerplate** — define State + Action + ViewModel and you're done
-- **Type-safe** — compiler-enforced contracts between UI and business logic
+- **Type-safe** — compiler-enforced contracts with typed error model (`AppError`)
 - **Multiplatform** — Android, iOS, Desktop, and Web (WasmJS) from one codebase
 - **Modular** — pick only what you need: core, network, actions, or all combined
 - **Lifecycle-aware** — built on `androidx.lifecycle.ViewModel` with proper coroutine scoping
+- **Observable** — pluggable logging for actions, state, effects, and network lifecycle
 
 ## Modules
 
@@ -180,7 +181,7 @@ class ProductsViewModel : BaseNetworkViewModel<ProductsState, ProductsAction>(
             retries = 3,
             isGlobal = true,
             onSuccess = { updateState { copy(products = it) } },
-            onError = { updateState { copy(error = it) } },
+            onError = { error -> updateState { copy(error = error.message) } },
             networkCall = { api.getProducts() }
         )
     }
@@ -195,9 +196,23 @@ class ProductsViewModel : BaseNetworkViewModel<ProductsState, ProductsAction>(
 | Guide | Description |
 |-------|-------------|
 | [Core Guide](docs/core-guide.md) | BaseViewModel, BaseViewModelWithEffect, contracts, error handling |
-| [Network Guide](docs/network-guide.md) | Retry, timeout, cancellation, loading state management |
+| [Network Guide](docs/network-guide.md) | Retry, timeout, cancellation, loading state management, typed errors |
 | [Actions Guide](docs/actions-guide.md) | Serial, parallel, chained, batch action dispatching |
-| [Best Practices](docs/best-practices.md) | Architecture, state design, testing, Compose integration |
+| [Best Practices](docs/best-practices.md) | Architecture, state design, testing, logging, Compose integration |
+
+## Logger Setup
+
+MVVMate includes a pluggable logging system. Enable it during development:
+
+```kotlin
+// In your Application.onCreate() or main():
+MvvMate.logger = PrintLogger  // Built-in console logger
+MvvMate.isDebug = true         // Enable state change logging
+```
+
+Or implement `MvvMateLogger` interface for custom integrations (Timber, Napier, etc.).
+
+See [Best Practices → Logging](docs/best-practices.md#logging) for details.
 
 ## API Documentation
 

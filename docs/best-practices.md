@@ -196,8 +196,11 @@ override suspend fun onAction(action: OrderAction) {
                     emitSideEffect(OrderEffect.ShowConfirmation(order.id))
                 },
                 onError = { error ->
-                    // Specific, contextual error handling
-                    updateState { copy(error = "Order failed: $error") }
+                    // Specific, contextual error handling with typed errors
+                    when (error) {
+                        is AppError.Timeout -> updateState { copy(error = "Order timed out, please retry") }
+                        else -> updateState { copy(error = "Order failed: ${error.message}") }
+                    }
                 },
                 networkCall = { api.placeOrder(state.value.cart) }
             )
@@ -340,3 +343,37 @@ fun SearchBar(onAction: (SearchAction) -> Unit) {
 // Usage:
 SearchBar(onAction = viewModel::handleAction)
 ```
+
+## Logging
+
+### 18. Enable Logging During Development
+
+```kotlin
+// In your Application.onCreate() or main():
+MvvMate.logger = PrintLogger  // Built-in console logger
+MvvMate.isDebug = true         // Also log state changes
+```
+
+Sample output:
+```
+[MVVMate] ▶ UsersViewModel :: FetchUsers
+[MVVMate] 🌐 Network [global] START
+[MVVMate] 🔄 UsersViewModel :: UsersState(isLoading=true, users=[], error=null)
+[MVVMate] ✅ Network [global] SUCCESS
+[MVVMate] 🔄 UsersViewModel :: UsersState(isLoading=false, users=[...], error=null)
+```
+
+For production, implement `MvvMateLogger` to integrate with your crash reporter:
+
+```kotlin
+object ProductionLogger : MvvMateLogger {
+    override fun logAction(viewModelName: String, action: UiAction) { /* no-op */ }
+    override fun logStateChange(viewModelName: String, oldState: UiState, newState: UiState) { /* no-op */ }
+    override fun logEffect(viewModelName: String, effect: Any) { /* no-op */ }
+    override fun logError(viewModelName: String, error: Throwable, context: String) {
+        crashReporter.recordException(error) // Only log errors in production
+    }
+    override fun logNetwork(tag: String, phase: MvvMateLogger.NetworkPhase, details: String) { /* no-op */ }
+}
+```
+

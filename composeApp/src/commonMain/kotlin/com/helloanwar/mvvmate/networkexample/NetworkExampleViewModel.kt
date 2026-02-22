@@ -1,5 +1,6 @@
 package com.helloanwar.mvvmate.networkexample
 
+import com.helloanwar.mvvmate.core.AppError
 import com.helloanwar.mvvmate.network.BaseNetworkViewModel
 import kotlinx.coroutines.delay
 
@@ -29,8 +30,8 @@ class NetworkExampleViewModel : BaseNetworkViewModel<NetworkExampleState, Networ
                 updateState { copy(data = result, error = null) }
             },
             onError = { error ->
-                addLog("❌ Error: $error")
-                updateState { copy(error = error) }
+                addLog("❌ Error: ${error.message}")
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 delay(1500) // Simulated network delay
@@ -52,8 +53,8 @@ class NetworkExampleViewModel : BaseNetworkViewModel<NetworkExampleState, Networ
                 updateState { copy(data = result, error = null) }
             },
             onError = { error ->
-                addLog("❌ All retries failed: $error")
-                updateState { copy(error = error) }
+                addLog("❌ All retries failed: ${error.message}")
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 attempt++
@@ -77,8 +78,8 @@ class NetworkExampleViewModel : BaseNetworkViewModel<NetworkExampleState, Networ
                 updateState { copy(data = result, error = null) }
             },
             onError = { error ->
-                addLog("❌ Timeout error: $error")
-                updateState { copy(error = error) }
+                addLog("❌ Timeout error: ${error.message}")
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 delay(3000) // This will exceed the 2s timeout
@@ -97,8 +98,8 @@ class NetworkExampleViewModel : BaseNetworkViewModel<NetworkExampleState, Networ
                 updateState { copy(data = result, error = null) }
             },
             onError = { error ->
-                addLog("❌ Search error: $error")
-                updateState { copy(error = error) }
+                addLog("❌ Search error: ${error.message}")
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 delay(3000) // Long running operation

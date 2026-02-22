@@ -2,6 +2,7 @@ package com.helloanwar.mvvmate.network_actions
 
 import androidx.lifecycle.viewModelScope
 import com.helloanwar.mvvmate.actions.BaseActionsViewModel
+import com.helloanwar.mvvmate.core.AppError
 import com.helloanwar.mvvmate.core.UiAction
 import com.helloanwar.mvvmate.core.UiState
 import com.helloanwar.mvvmate.network.NetworkDelegate
@@ -36,7 +37,7 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         isGlobal: Boolean = false,
         partialKey: String? = null,
         onSuccess: (T) -> Unit,
-        onError: (String) -> Unit,
+        onError: (AppError) -> Unit,
         networkCall: suspend () -> T
     ) = networkDelegate.performNetworkCall(isGlobal, partialKey, onSuccess, onError, networkCall)
 
@@ -47,7 +48,7 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         isGlobal: Boolean = false,
         partialKey: String? = null,
         onSuccess: (T) -> Unit,
-        onError: (String) -> Unit,
+        onError: (AppError) -> Unit,
         networkCall: suspend () -> T
     ) = networkDelegate.performNetworkCallWithRetry(
         retries, initialDelay, maxDelay, isGlobal, partialKey, onSuccess, onError, networkCall
@@ -58,7 +59,7 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         isGlobal: Boolean = false,
         partialKey: String? = null,
         onSuccess: (T) -> Unit,
-        onError: (String) -> Unit,
+        onError: (AppError) -> Unit,
         networkCall: suspend () -> T
     ) = networkDelegate.performNetworkCallWithTimeout(
         timeoutMillis, isGlobal, partialKey, onSuccess, onError, networkCall
@@ -69,7 +70,7 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         isGlobal: Boolean = false,
         partialKey: String? = null,
         onSuccess: (T) -> Unit,
-        onError: (String) -> Unit,
+        onError: (AppError) -> Unit,
         networkCall: suspend () -> T
     ) = networkDelegate.performNetworkCallWithCancellation(
         tag, isGlobal, partialKey, onSuccess, onError, networkCall

@@ -1,13 +1,13 @@
 # Network Module Guide
 
-The `network` module extends `BaseViewModel` with built-in patterns for network call management — loading states, retry with backoff, timeouts, and cancellation.
+The `network` module extends `BaseViewModel` with built-in patterns for network call management — loading states, retry with backoff, timeouts, cancellation, and **typed error handling** via `AppError`.
 
 ## Module Overview
 
 | Class | Purpose |
 |-------|---------|
 | `BaseNetworkViewModel<S, A>` | ViewModel with network call helpers |
-| `NetworkDelegate<S>` | Reusable network logic (used internally) |
+| `NetworkDelegate<S>` | Reusable network logic (thread-safe, used internally) |
 
 ## Installation
 
@@ -60,8 +60,8 @@ class UsersViewModel : BaseNetworkViewModel<UsersState, UsersAction>(
             onSuccess = { users ->
                 updateState { copy(users = users, error = null) }
             },
-            onError = { errorMessage ->
-                updateState { copy(error = errorMessage) }
+            onError = { error ->
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 api.getUsers() // Your actual API call
@@ -89,9 +89,9 @@ private suspend fun fetchUsersWithRetry() {
         onSuccess = { users ->
             updateState { copy(users = users, error = null) }
         },
-        onError = { errorMessage ->
+        onError = { error ->
             // Called only after ALL retries have failed
-            updateState { copy(error = "Failed after 3 attempts: $errorMessage") }
+            updateState { copy(error = "Failed after 3 attempts: ${error.message}") }
         },
         networkCall = {
             api.getUsers()
@@ -119,9 +119,9 @@ private suspend fun fetchWithTimeout() {
         onSuccess = { users ->
             updateState { copy(users = users) }
         },
-        onError = { errorMessage ->
-            // errorMessage will be "Operation timed out" for timeouts
-            updateState { copy(error = errorMessage) }
+        onError = { error ->
+            // error will be AppError.Timeout for timeouts
+            updateState { copy(error = error.message) }
         },
         networkCall = {
             api.getUsers()
@@ -143,8 +143,8 @@ private fun searchUsers(query: String) {
         onSuccess = { users ->
             updateState { copy(users = users) }
         },
-        onError = { errorMessage ->
-            updateState { copy(error = errorMessage) }
+        onError = { error ->
+            updateState { copy(error = error.message) }
         },
         networkCall = {
             api.searchUsers(query)
@@ -233,7 +233,7 @@ class UsersViewModel : BaseNetworkViewModel<UsersState, UsersAction>(
         performNetworkCall<List<User>>(
             isGlobal = true,
             onSuccess = { updateState { copy(users = it, error = null) } },
-            onError = { updateState { copy(error = it) } },
+            onError = { updateState { copy(error = it.message) } },
             networkCall = { api.getUsers() }
         )
     }
@@ -243,7 +243,7 @@ class UsersViewModel : BaseNetworkViewModel<UsersState, UsersAction>(
             retries = 3,
             isGlobal = true,
             onSuccess = { updateState { copy(users = it, error = null) } },
-            onError = { updateState { copy(error = it) } },
+            onError = { updateState { copy(error = it.message) } },
             networkCall = { api.getUsers() }
         )
     }
@@ -253,7 +253,7 @@ class UsersViewModel : BaseNetworkViewModel<UsersState, UsersAction>(
             tag = "search",
             partialKey = "search",
             onSuccess = { updateState { copy(users = it, error = null) } },
-            onError = { updateState { copy(error = it) } },
+            onError = { updateState { copy(error = it.message) } },
             networkCall = { api.searchUsers(query) }
         )
     }
@@ -266,3 +266,30 @@ class UsersViewModel : BaseNetworkViewModel<UsersState, UsersAction>(
         copy(loadingKeys = loadingKeys - key)
 }
 ```
+
+## Typed Error Handling
+
+All `onError` callbacks receive an `AppError` instead of a raw `String`, enabling precise error handling:
+
+```kotlin
+onError = { error ->
+    when (error) {
+        is AppError.Network -> {
+            if (error.isRetryable) {
+                updateState { copy(error = "Network issue, tap to retry") }
+            } else {
+                updateState { copy(error = "Server error: ${error.httpCode}") }
+            }
+        }
+        is AppError.Timeout -> {
+            updateState { copy(error = "Request timed out after ${error.durationMs}ms") }
+        }
+        else -> {
+            updateState { copy(error = error.message) }
+        }
+    }
+}
+```
+
+> **Tip:** For simple cases, just use `error.message` — all `AppError` subtypes provide a human-readable message.
+

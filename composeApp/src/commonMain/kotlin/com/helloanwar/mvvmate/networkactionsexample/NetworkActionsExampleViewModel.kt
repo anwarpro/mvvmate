@@ -52,8 +52,8 @@ class NetworkActionsExampleViewModel :
                 addLog("✅ All posts fetched successfully!")
             },
             onError = { error ->
-                addLog("❌ Error fetching posts: $error")
-                updateState { copy(error = error) }
+                addLog("❌ Error fetching posts: ${error.message}")
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 delay(2000) // Simulate network delay
@@ -85,7 +85,7 @@ class NetworkActionsExampleViewModel :
                     addLog("  ✅ Post ${index + 1} loaded")
                 },
                 onError = { error ->
-                    addLog("  ❌ Failed to load post ${index + 1}: $error")
+                    addLog("  ❌ Failed to load post ${index + 1}: ${error.message}")
                 },
                 networkCall = {
                     delay(800)
@@ -111,8 +111,8 @@ class NetworkActionsExampleViewModel :
                 updateState { copy(posts = posts + result) }
             },
             onError = { error ->
-                addLog("❌ Network call failed after retries: $error")
-                updateState { copy(error = error) }
+                addLog("❌ Network call failed after retries: ${error.message}")
+                updateState { copy(error = error.message) }
             },
             networkCall = {
                 delay(1000)

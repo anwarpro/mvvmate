@@ -7,7 +7,10 @@ The `core` module is the foundation of MVVMate. It provides the base classes for
 | Class | Purpose |
 |-------|---------|
 | `BaseViewModel<S, A>` | Manages state and handles actions |
-| `BaseViewModelWithEffect<S, A, E>` | Adds one-time side effect support |
+| `BaseViewModelWithEffect<S, A, E>` | Adds one-time side effect support (guaranteed delivery) |
+| `AppError` | Typed error hierarchy for structured error handling |
+| `MvvMateLogger` | Pluggable logging interface |
+| `MvvMate` | Global configuration (logger, debug mode) |
 | `UiState` | Marker interface for state classes |
 | `UiAction` | Marker interface for user actions |
 | `UiEffect` | Marker interface for side effects |
@@ -126,6 +129,8 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel()) {
 
 Use this when you need **one-time events** that shouldn't be part of the permanent state — navigation, toasts, dialogs, etc.
 
+> **Guaranteed delivery:** Effects are backed by a buffered `Channel`, so they are never lost even if no collector is active when the effect is emitted. They queue up and are delivered when a collector subscribes.
+
 ### Creating a ViewModel with Effects
 
 ```kotlin
@@ -234,3 +239,80 @@ data class MyState(
     val data: DataContainer = DataContainer()
 ) : UiState
 ```
+
+## AppError — Typed Error Model
+
+Instead of passing raw strings for errors, MVVMate provides a structured `AppError` sealed class:
+
+```kotlin
+import com.helloanwar.mvvmate.core.AppError
+
+// Available error types:
+AppError.Network(message, httpCode?, isRetryable)  // HTTP/connectivity errors
+AppError.Timeout(message, durationMs)                // Timeout errors
+AppError.Validation(message, field?)                 // Input validation errors  
+AppError.Unknown(message, cause?)                    // Catch-all
+
+// All types have a .message property for display:
+updateState { copy(error = appError.message) }
+
+// Pattern matching for specific handling:
+when (error) {
+    is AppError.Network -> if (error.isRetryable) retryLastAction()
+    is AppError.Timeout -> showRetryDialog()
+    is AppError.Validation -> highlightField(error.field)
+    is AppError.Unknown -> logAndShowGeneric(error)
+}
+
+// Auto-classify exceptions:
+val error = AppError.from(exception) // TimeoutException → Timeout, others → Unknown
+```
+
+## MvvMateLogger — Pluggable Logging
+
+MVVMate automatically logs actions, state changes, effects, errors, and network lifecycle events through a pluggable logger:
+
+```kotlin
+import com.helloanwar.mvvmate.core.MvvMate
+import com.helloanwar.mvvmate.core.PrintLogger
+
+// Enable during development:
+MvvMate.logger = PrintLogger
+MvvMate.isDebug = true  // Enables state change logging
+```
+
+**What gets logged automatically:**
+
+| Event | When | Debug-only? |
+|-------|------|-------------|
+| Action dispatch | Every `handleAction()` call | No |
+| State change | Every `updateState()` with changed state | Yes |
+| Effect emission | Every `emitSideEffect()` | No |
+| Errors | Every exception in `onAction` | No |
+| Network lifecycle | Start, retry, success, failure, cancel, timeout | No |
+
+### Custom Logger
+
+```kotlin
+object TimberLogger : MvvMateLogger {
+    override fun logAction(viewModelName: String, action: UiAction) {
+        Timber.d("$viewModelName :: ${action::class.simpleName}")
+    }
+    override fun logStateChange(viewModelName: String, oldState: UiState, newState: UiState) {
+        Timber.v("$viewModelName :: $newState")
+    }
+    override fun logEffect(viewModelName: String, effect: Any) {
+        Timber.d("$viewModelName :: $effect")
+    }
+    override fun logError(viewModelName: String, error: Throwable, context: String) {
+        Timber.e(error, "$viewModelName [$context]")
+    }
+    override fun logNetwork(tag: String, phase: MvvMateLogger.NetworkPhase, details: String) {
+        Timber.d("Network [$tag] ${phase.name}: $details")
+    }
+}
+
+// Set in Application.onCreate():
+MvvMate.logger = TimberLogger
+```
+
