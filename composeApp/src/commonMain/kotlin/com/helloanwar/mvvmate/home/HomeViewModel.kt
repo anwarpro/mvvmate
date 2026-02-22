@@ -10,12 +10,34 @@ class HomeViewModel : BaseViewModelWithEffect<HomeState, HomeAction, HomeEffect>
         when (action) {
             HomeAction.LoadData -> {
                 emitSideEffect(HomeEffect.ShowToast("Loading data..."))
-                updateState {
-                    copy(isLoading = true)
-                }
+                updateState { copy(isLoading = true) }
                 delay(2000)
-                updateState { copy(isLoading = false) }
-                emitSideEffect(HomeEffect.ShowToast("Data loaded"))
+                updateState {
+                    copy(
+                        isLoading = false,
+                        items = listOf("Item A", "Item B", "Item C")
+                    )
+                }
+                emitSideEffect(HomeEffect.ShowToast("Data loaded — 3 items"))
+            }
+
+            HomeAction.Increment -> {
+                updateState { copy(counter = counter + 1) }
+                emitSideEffect(HomeEffect.ShowToast("Counter: ${state.value.counter + 1}"))
+            }
+
+            HomeAction.Decrement -> {
+                updateState { copy(counter = counter - 1) }
+                emitSideEffect(HomeEffect.ShowToast("Counter: ${state.value.counter - 1}"))
+            }
+
+            HomeAction.Reset -> {
+                updateState { copy(counter = 0, items = emptyList()) }
+                emitSideEffect(HomeEffect.ShowToast("State reset"))
+            }
+
+            is HomeAction.AddItem -> {
+                updateState { copy(items = items + action.item) }
             }
         }
     }

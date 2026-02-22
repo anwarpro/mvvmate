@@ -14,7 +14,7 @@ plugins {
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
+        outputModuleName.set("composeApp")
         browser {
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
@@ -68,6 +68,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(project(":core"))
+            implementation(project(":network"))
+            implementation(project(":actions"))
+            implementation(project(":network-actions"))
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

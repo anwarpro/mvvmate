@@ -1,23 +1,24 @@
 [versions]
-agp = "8.7.3"
-android-compileSdk = "35"
+agp = "8.13.0"
+android-compileSdk = "36"
 android-minSdk = "24"
-android-targetSdk = "35"
+android-targetSdk = "36"
 mvvmate-version = "0.1.0"
 androidx-activityCompose = "1.10.1"
 androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.1.4"
 androidx-core-ktx = "1.16.0"
 androidx-espresso-core = "3.6.1"
-androidx-lifecycle = "2.9.1"
+androidx-lifecycle = "2.9.4"
 androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
-compose-plugin = "1.8.2"
+compose-plugin = "1.9.0"
 junit = "4.13.2"
-kotlin = "2.1.21"
-kotlinx-coroutines = "1.8.1"
+kotlin = "2.2.20"
+kotlinx-coroutines = "1.10.2"
 jreleaser = "1.7.0"
 dokka = "1.9.20"
+vanniktechMavenPublish = "0.34.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -44,3 +45,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+vanniktech-mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktechMavenPublish" }
