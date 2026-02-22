@@ -64,7 +64,8 @@ object PrintLogger : MvvMateLogger {
     }
 
     override fun logStateChange(viewModelName: String, oldState: UiState, newState: UiState) {
-        println("[MVVMate] 🔄 $viewModelName :: $newState")
+        val diff = StateDiffUtil.diffSummary(oldState, newState)
+        println("[MVVMate] 🔄 $viewModelName :: $diff")
     }
 
     override fun logEffect(viewModelName: String, effect: Any) {
