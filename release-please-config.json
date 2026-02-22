@@ -6,11 +6,7 @@
       "bump-patch-for-minor-pre-major": true,
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
-        {
-          "type": "toml",
-          "path": "gradle/libs.versions.toml",
-          "key": "versions.mvvmate-version"
-        }
+        "gradle/libs.versions.toml"
       ]
     }
   },
