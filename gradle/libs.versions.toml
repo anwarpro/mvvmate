@@ -18,7 +18,7 @@ kotlin = "2.2.20"
 kotlinx-coroutines = "1.10.2"
 jreleaser = "1.7.0"
 dokka = "1.9.20"
-vanniktechMavenPublish = "0.34.0"
+vanniktechMavenPublish = "0.36.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
