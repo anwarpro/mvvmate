@@ -9,6 +9,11 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+configurations.all {
+    resolutionStrategy.force("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 }
 
 kotlin {
@@ -71,6 +76,9 @@ kotlin {
             implementation(project(":network"))
             implementation(project(":actions"))
             implementation(project(":network-actions"))
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.koog.agents)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

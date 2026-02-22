@@ -210,6 +210,50 @@ MvvMate.logger = PrintLogger  // Built-in console logger
 MvvMate.isDebug = true         // Enable state change logging
 ```
 
+### AI Crash Logger
+
+You can use the built-in `MvvMateAiLogger` to maintain a secure, GDPR-compliant ring buffer of chronological actions, states, networking, and side effects. If a crash occurs, you instantly get a perfect, human-readable timeline to feed into an LLM or logging service:
+
+```kotlin
+val aiLogger = MvvMateAiLogger(
+    delegate = PrintLogger, // also print to console
+    maxHistorySize = 50,
+    // Safely redacts emails, tokens, and credit cards from the final string output
+    redactor = RegexPrivacyRedactor(RegexPrivacyRedactor.DefaultPatterns())
+)
+MvvMate.logger = aiLogger
+
+// When a crash occurs:
+val crashContextString = aiLogger.takeRedactedSnapshotString()
+```
+
+### LLM Autopilot Bridge (Agentic UI)
+
+Want to let an AI "drive" your app? The `AiActionBridge` connects an LLM directly to your `BaseViewModel`. 
+
+It includes a strict `AiActionPolicy` to ensure the LLM can only execute safe, whitelisted actions, preventing it from doing things like deleting accounts or triggering payments.
+
+```kotlin
+// 1. Define a security policy
+val safePolicy = object : AiActionPolicy<MyState, MyAction> {
+    override fun isActionAllowed(action: MyAction, currentState: MyState): Boolean {
+        // AI is strictly FORBIDDEN from deleting accounts or checking out
+        return action !is MyAction.DeleteAccount && action !is MyAction.Checkout
+    }
+}
+
+// 2. Attach Bridge
+val bridge = AiActionBridge(
+    viewModel = myViewModel,
+    policy = safePolicy,
+    parser = MyJsonActionParser() // Convert LLM strings to UiAction
+)
+
+// 3. Receive LLM Command
+// Example AI generated JSON: { "type": "Increment" }
+bridge.dispatch(llmJsonOutput)
+```
+
 Or implement `MvvMateLogger` interface for custom integrations (Timber, Napier, etc.).
 
 See [Best Practices → Logging](docs/best-practices.md#logging) for details.

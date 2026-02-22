@@ -316,3 +316,78 @@ object TimberLogger : MvvMateLogger {
 MvvMate.logger = TimberLogger
 ```
 
+### AI-Powered App Logger
+
+If you want an advanced logging mechanism that tracks the last `N` events in memory for crash reporting, use the `MvvMateAiLogger`. It includes an automatic `PrivacyRedactor` to strip sensitive Personal Identifiable Information (PII) before saving the crash dump.
+
+```kotlin
+val aiLogger = MvvMateAiLogger(
+    delegate = TimberLogger, // Wrap your existing logger
+    maxHistorySize = 50,     // Keep last 50 events in memory
+    redactor = RegexPrivacyRedactor() // Strip emails, passwords, and CCs automatically
+)
+
+MvvMate.logger = aiLogger
+
+// Setup a global UncaughtExceptionHandler (e.g., in Android Application class)
+Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
+    // Grab the grammatical timeline of exactly what happened before the crash
+    val crashTimeline = aiLogger.takeRedactedSnapshotString()
+    
+    // Send this rich context to Crashlytics, Sentry, or your LLM backend
+    Crashlytics.log(crashTimeline)
+}
+```
+
+## AI Autopilot Bridge (Agentic UI)
+
+MVVMate makes it trivial to turn any screen into an "Agentic UI", meaning you can allow an LLM or remote AI Agent to "drive" the application by dispatching standard `UiAction` events instead of relying on real human taps.
+
+To do this safely without allowing an LLM to accidentally drop databases or perform unauthorized payments, you use the `AiActionBridge` and an `AiActionPolicy`.
+
+### 1. Create a Security Policy
+The Policy enforces what actions the LLM is allowed to execute based on the current state.
+
+```kotlin
+import com.helloanwar.mvvmate.core.ai.*
+
+val aiPolicy = object : AiActionPolicy<CartState, CartAction> {
+    override fun isActionAllowed(action: CartAction, currentState: CartState): Boolean {
+        // AI is allowed to Add/Remove items
+        if (action is CartAction.AddItem || action is CartAction.RemoveItem) return true
+        
+        // AI is strictly FORBIDDEN from clearing the cart or checking out
+        if (action is CartAction.ClearCart || action is CartAction.Checkout) return false
+        
+        return false // Default deny
+    }
+}
+```
+
+### 2. Connect the Bridge
+Bind the LLM bridge to your ViewModel. You must provide a parser that converts the raw text the LLM outputs (like JSON) back into your sealed action class.
+
+```kotlin
+val bridge = AiActionBridge(
+    viewModel = cartViewModel,
+    policy = aiPolicy,
+    parser = MyJsonActionParser(), // Your custom deserializer
+    redactor = RegexPrivacyRedactor() // Strip sensitive data before giving state to AI
+)
+```
+
+### 3. Execution Loop
+Read the safe, redacted state to feed to your LLM prompt, and pass the resulting string backward.
+
+```kotlin
+// Safely feed standard JSON state to your LLM without leaking passwords
+val statePromptContext = bridge.getCurrentState() 
+val llmResponseString = callLlm(statePromptContext) // e.g. "{ "type": "AddItem" }"
+
+// Dispatch safely
+val result = bridge.dispatch(llmResponseString)
+if (result.isFailure) {
+    // LLM tried to hallucinate a bad command or bypass security policy
+}
+```
+

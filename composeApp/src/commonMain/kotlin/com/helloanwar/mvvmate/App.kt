@@ -12,6 +12,7 @@ import com.helloanwar.mvvmate.home.HomeScreen
 import com.helloanwar.mvvmate.navigation.MainMenuScreen
 import com.helloanwar.mvvmate.navigation.Screen
 import com.helloanwar.mvvmate.networkactionsexample.NetworkActionsExampleScreen
+import com.helloanwar.mvvmate.aiexample.SmartProfileScreen
 import com.helloanwar.mvvmate.networkexample.NetworkExampleScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -25,6 +26,10 @@ fun App() {
             when (screen) {
                 Screen.Main -> MainMenuScreen(
                     onNavigate = { currentScreen = it }
+                )
+
+                Screen.AiExample -> SmartProfileScreen(
+                    onBack = { currentScreen = Screen.Main }
                 )
 
                 Screen.CoreExample -> HomeScreen(

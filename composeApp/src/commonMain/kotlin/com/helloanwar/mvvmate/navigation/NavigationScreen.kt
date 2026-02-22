@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 enum class Screen {
-    Main, CoreExample, NetworkExample, ActionsExample, NetworkActionsExample
+    Main, CoreExample, NetworkExample, ActionsExample, NetworkActionsExample, AiExample
 }
 
 data class ExampleItem(
@@ -44,6 +44,12 @@ fun MainMenuScreen(
     onNavigate: (Screen) -> Unit
 ) {
     val examples = listOf(
+        ExampleItem(
+            title = "✨ AI Autopilot Bridge",
+            subtitle = "Smart Form Autofill using JetBrains Koog & Gemini",
+            emoji = "🤖",
+            screen = Screen.AiExample
+        ),
         ExampleItem(
             title = "Core",
             subtitle = "BaseViewModel & BaseViewModelWithEffect — State, Actions, Side Effects",
