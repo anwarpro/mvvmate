@@ -1,12 +1,12 @@
 package com.helloanwar.mvvmate.core
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
 
 /**
  * Base class for ViewModels that manages UI state and handles user actions.
@@ -39,12 +39,19 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
 
     /**
      * Handles a user action and updates the state accordingly using the provided [onAction] method.
+     * Uses [viewModelScope] to ensure coroutines are cancelled when the ViewModel is cleared.
      *
      * @param action The user action to handle.
      */
     fun handleAction(action: A) {
-        CoroutineScope(Dispatchers.Main).launch {
-            onAction(action)
+        viewModelScope.launch {
+            try {
+                onAction(action)
+            } catch (e: CancellationException) {
+                throw e // Never swallow CancellationException
+            } catch (e: Exception) {
+                onError(action, e)
+            }
         }
     }
 
@@ -54,4 +61,15 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
      * @param action The user action to be handled.
      */
     abstract suspend fun onAction(action: A)
+
+    /**
+     * Called when [onAction] throws an exception (other than [CancellationException]).
+     * Override to provide custom error handling.
+     *
+     * @param action The action that was being processed when the error occurred.
+     * @param error The exception that was thrown.
+     */
+    protected open fun onError(action: A, error: Exception) {
+        // Default: no-op. Subclasses can override for custom error handling.
+    }
 }

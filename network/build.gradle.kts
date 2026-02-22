@@ -32,7 +32,7 @@ kotlin {
     }
 
     androidLibrary {
-        namespace = "com.helloanwar.mvvmate.core"
+        namespace = "com.helloanwar.mvvmate.network"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 

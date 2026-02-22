@@ -4,38 +4,42 @@ import androidx.lifecycle.viewModelScope
 import com.helloanwar.mvvmate.actions.BaseActionsViewModel
 import com.helloanwar.mvvmate.core.UiAction
 import com.helloanwar.mvvmate.core.UiState
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.delay
+import com.helloanwar.mvvmate.network.NetworkDelegate
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
+/**
+ * Base class that combines action dispatching capabilities from [BaseActionsViewModel]
+ * with network call management from [NetworkDelegate].
+ *
+ * This eliminates the need to duplicate network logic — all network methods
+ * (basic, retry, timeout, cancellation) are provided by the shared [NetworkDelegate].
+ *
+ * @param S The type of UI state.
+ * @param A The type of user actions.
+ * @property initialState The initial state of the ViewModel.
+ */
 abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
     initialState: S
 ) : BaseActionsViewModel<S, A>(initialState) {
 
-    private val ongoingJobs = mutableMapOf<String, Job>() // For tracking cancellable jobs
+    /**
+     * The network delegate that provides all network call capabilities.
+     */
+    protected val networkDelegate = NetworkDelegate<S>(
+        updateState = { reducer -> updateState(reducer) },
+        launchInScope = { block -> viewModelScope.launch { block() } }
+    )
 
-    // Perform network call with basic support (for global/partial loading)
+    // --- Convenience wrappers that delegate to networkDelegate ---
+
     protected suspend fun <T> performNetworkCall(
         isGlobal: Boolean = false,
         partialKey: String? = null,
         onSuccess: (T) -> Unit,
         onError: (String) -> Unit,
         networkCall: suspend () -> T
-    ) {
-        try {
-            setLoadingState(isGlobal, partialKey)
-            val result = networkCall()
-            resetLoadingState(isGlobal, partialKey)
-            onSuccess(result)
-        } catch (e: Exception) {
-            resetLoadingState(isGlobal, partialKey)
-            onError(e.message ?: "Unknown Error")
-        }
-    }
+    ) = networkDelegate.performNetworkCall(isGlobal, partialKey, onSuccess, onError, networkCall)
 
-    // Perform network call with retry
     protected suspend fun <T> performNetworkCallWithRetry(
         retries: Int = 3,
         initialDelay: Long = 1000L,
@@ -45,28 +49,10 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         onSuccess: (T) -> Unit,
         onError: (String) -> Unit,
         networkCall: suspend () -> T
-    ) {
-        var currentDelay = initialDelay
-        repeat(retries) { attempt ->
-            try {
-                setLoadingState(isGlobal, partialKey)
-                val result = networkCall()
-                resetLoadingState(isGlobal, partialKey)
-                onSuccess(result)
-                return
-            } catch (e: Exception) {
-                if (attempt == retries - 1) {
-                    resetLoadingState(isGlobal, partialKey)
-                    onError(e.message ?: "Unknown Error")
-                } else {
-                    delay(currentDelay)
-                    currentDelay = (currentDelay * 2).coerceAtMost(maxDelay)
-                }
-            }
-        }
-    }
+    ) = networkDelegate.performNetworkCallWithRetry(
+        retries, initialDelay, maxDelay, isGlobal, partialKey, onSuccess, onError, networkCall
+    )
 
-    // Perform network call with timeout
     protected suspend fun <T> performNetworkCallWithTimeout(
         timeoutMillis: Long = 5000L,
         isGlobal: Boolean = false,
@@ -74,22 +60,10 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         onSuccess: (T) -> Unit,
         onError: (String) -> Unit,
         networkCall: suspend () -> T
-    ) {
-        try {
-            setLoadingState(isGlobal, partialKey)
-            val result = withTimeout(timeoutMillis) { networkCall() }
-            resetLoadingState(isGlobal, partialKey)
-            onSuccess(result)
-        } catch (e: TimeoutCancellationException) {
-            resetLoadingState(isGlobal, partialKey)
-            onError("Operation timed out")
-        } catch (e: Exception) {
-            resetLoadingState(isGlobal, partialKey)
-            onError(e.message ?: "Unknown Error")
-        }
-    }
+    ) = networkDelegate.performNetworkCallWithTimeout(
+        timeoutMillis, isGlobal, partialKey, onSuccess, onError, networkCall
+    )
 
-    // Perform network call with cancellation support
     protected fun <T> performNetworkCallWithCancellation(
         tag: String,
         isGlobal: Boolean = false,
@@ -97,53 +71,27 @@ abstract class BaseNetworkActionsViewModel<S : UiState, A : UiAction>(
         onSuccess: (T) -> Unit,
         onError: (String) -> Unit,
         networkCall: suspend () -> T
-    ) {
-        // Cancel any ongoing job with the same tag
-        ongoingJobs[tag]?.cancel()
+    ) = networkDelegate.performNetworkCallWithCancellation(
+        tag, isGlobal, partialKey, onSuccess, onError, networkCall
+    )
 
-        val job = viewModelScope.launch {
-            try {
-                setLoadingState(isGlobal, partialKey)
-                val result = networkCall()
-                resetLoadingState(isGlobal, partialKey)
-                onSuccess(result)
-            } catch (e: Exception) {
-                resetLoadingState(isGlobal, partialKey)
-                onError(e.message ?: "Unknown Error")
-            } finally {
-                ongoingJobs.remove(tag)
-            }
-        }
+    fun cancelNetworkCall(tag: String) = networkDelegate.cancelNetworkCall(tag)
 
-        ongoingJobs[tag] = job
-    }
+    // --- Loading state overrides — wire through to delegate ---
 
-    // Helper method to cancel a specific network call
-    fun cancelNetworkCall(tag: String) {
-        ongoingJobs[tag]?.cancel()
-        ongoingJobs.remove(tag)
-    }
-
-    // Placeholder methods for setting/resetting loading state
-    private fun setLoadingState(isGlobal: Boolean, partialKey: String?) {
-        if (isGlobal) {
-            updateState { setGlobalLoadingState() }
-        } else if (partialKey != null) {
-            updateState { setPartialLoadingState(partialKey) }
-        }
-    }
-
-    private fun resetLoadingState(isGlobal: Boolean, partialKey: String?) {
-        if (isGlobal) {
-            updateState { resetGlobalLoadingState() }
-        } else if (partialKey != null) {
-            updateState { resetPartialLoadingState(partialKey) }
-        }
-    }
-
-    // Default implementations for loading state can be overridden by subclasses
     protected open fun S.setGlobalLoadingState(): S = this
     protected open fun S.resetGlobalLoadingState(): S = this
     protected open fun S.setPartialLoadingState(key: String): S = this
     protected open fun S.resetPartialLoadingState(key: String): S = this
+
+    init {
+        @Suppress("LeakingThis")
+        networkDelegate.setGlobalLoadingState = { setGlobalLoadingState() }
+        @Suppress("LeakingThis")
+        networkDelegate.resetGlobalLoadingState = { resetGlobalLoadingState() }
+        @Suppress("LeakingThis")
+        networkDelegate.setPartialLoadingState = { key -> setPartialLoadingState(key) }
+        @Suppress("LeakingThis")
+        networkDelegate.resetPartialLoadingState = { key -> resetPartialLoadingState(key) }
+    }
 }

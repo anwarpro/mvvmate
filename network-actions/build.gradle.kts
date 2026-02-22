@@ -66,6 +66,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(projects.core)
             implementation(projects.actions)
+            implementation(projects.network)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
