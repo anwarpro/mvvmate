@@ -1,0 +1,15 @@
+<idea-plugin>
+<id>org.jetbrains.plugins.compose.template</id>
+<name>Compose Template Example</name>
+<vendor url="https://www.yourcompany.com">YourCompany</vendor>
+
+<depends>com.intellij.modules.compose</depends>
+
+<resource-bundle>messages.ComposeTemplateBundle</resource-bundle>
+
+<extensions defaultExtensionNs="com.intellij">
+    <toolWindow factoryClass="com.helloanwar.mvvmate.generator.ui.TestGeneratorToolWindowFactory"
+        icon="org.jetbrains.plugins.template.ComposeIcons.ComposeToolWindow"
+        id="ComposeSamples"/>
+</extensions>
+</idea-plugin>

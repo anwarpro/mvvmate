@@ -16,3 +16,14 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+studio-plugin/.intellijPlatform
+build
+.idea/libraries
+.idea/modules
+.idea/workspace.xml
+.idea/misc.xml
+.idea/kotlinc.xml
+.idea/shelf
+.intellijPlatform
+studio-plugin/build
