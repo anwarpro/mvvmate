@@ -33,4 +33,5 @@ include(":core")
 include(":network")
 include(":actions")
 include(":network-actions")
-include("studio-plugin") // Add this instead
+include(":remote-debug")
+include(":studio-plugin") // Add this instead

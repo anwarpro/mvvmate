@@ -76,6 +76,7 @@ kotlin {
             implementation(project(":network"))
             implementation(project(":actions"))
             implementation(project(":network-actions"))
+            implementation(project(":remote-debug"))
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.koog.agents)

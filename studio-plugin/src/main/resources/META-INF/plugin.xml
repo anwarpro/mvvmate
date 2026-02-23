@@ -11,5 +11,7 @@
     <toolWindow factoryClass="com.helloanwar.mvvmate.generator.ui.TestGeneratorToolWindowFactory"
         icon="org.jetbrains.plugins.template.ComposeIcons.ComposeToolWindow"
         id="ComposeSamples"/>
+    <toolWindow factoryClass="com.helloanwar.mvvmate.generator.debug.RemoteDebugToolWindowFactory"
+        id="MVVMate Debug" icon="AllIcons.Debugger.Console" />
 </extensions>
 </idea-plugin>

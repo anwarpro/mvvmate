@@ -74,11 +74,9 @@ class TimelineLogger(
             viewModel = viewModel,
             message = message
         )
-        synchronized(entries) {
-            entries.add(entry)
-            if (entries.size > maxEntries) {
-                entries.removeAt(0)
-            }
+        entries.add(entry)
+        if (entries.size > maxEntries) {
+            entries.removeAt(0)
         }
     }
 
@@ -117,21 +115,17 @@ class TimelineLogger(
     /**
      * Get all recorded entries.
      */
-    fun getEntries(): List<Entry> = synchronized(entries) { entries.toList() }
+    fun getEntries(): List<Entry> = entries.toList()
 
     /**
      * Get the last [n] entries.
      */
-    fun getLastEntries(n: Int): List<Entry> = synchronized(entries) {
-        entries.takeLast(n)
-    }
+    fun getLastEntries(n: Int): List<Entry> = entries.takeLast(n)
 
     /**
      * Get all entries for a specific ViewModel.
      */
-    fun getEntriesFor(viewModelName: String): List<Entry> = synchronized(entries) {
-        entries.filter { it.viewModel == viewModelName }
-    }
+    fun getEntriesFor(viewModelName: String): List<Entry> = entries.filter { it.viewModel == viewModelName }
 
     /**
      * Print the full timeline to stdout.
@@ -157,7 +151,7 @@ class TimelineLogger(
             println("[MVVMate Timeline] (empty)")
             return
         }
-        val total = synchronized(entries) { entries.size }
+        val total = entries.size
         println("[MVVMate Timeline] last $n of $total entries:")
         println("─".repeat(60))
         snapshot.forEach { println(it.format()) }
@@ -177,9 +171,7 @@ class TimelineLogger(
      * Clear all entries and reset the start time.
      */
     fun clear() {
-        synchronized(entries) {
-            entries.clear()
-            startMark = timeSource.markNow()
-        }
+        entries.clear()
+        startMark = timeSource.markNow()
     }
 }

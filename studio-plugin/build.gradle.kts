@@ -52,10 +52,15 @@ dependencies {
     // Core MVVMate Dependencies
     implementation(project(":core"))
     
-    // Koog and Coroutines
+    // koog agents dependency
     implementation(libs.koog.agents) {
         exclude(group = "org.slf4j")
     }
+
+    // Remote Debug Dependencies
+    implementation(project(":remote-debug"))
+    implementation(libs.java.websocket)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
     intellijPlatform {
         intellijIdea(providers.gradleProperty("platformVersion"))

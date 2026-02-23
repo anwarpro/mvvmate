@@ -15,10 +15,19 @@ import com.helloanwar.mvvmate.networkactionsexample.NetworkActionsExampleScreen
 import com.helloanwar.mvvmate.aiexample.SmartProfileScreen
 import com.helloanwar.mvvmate.networkexample.NetworkExampleScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import com.helloanwar.mvvmate.core.MvvMate
+import com.helloanwar.mvvmate.debug.RemoteDebugLogger
+
+private val initDebugLogger = lazy {
+    MvvMate.logger = RemoteDebugLogger()
+    MvvMate.isDebug = true
+}
 
 @Composable
 @Preview
 fun App() {
+    initDebugLogger.value
+    
     MaterialTheme {
         var currentScreen by remember { mutableStateOf(Screen.Main) }
 
