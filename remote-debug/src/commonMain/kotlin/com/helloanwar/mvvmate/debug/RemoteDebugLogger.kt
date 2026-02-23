@@ -8,10 +8,12 @@ import io.ktor.client.request.url
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
+import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
@@ -32,6 +34,43 @@ class RemoteDebugLogger(
     
     private var session: WebSocketSession? = null
 
+    // ── State history for time-travel (actual state objects) ──
+    private data class StateSnapshot(
+        val index: Int,
+        val viewModelName: String,
+        val state: UiState
+    )
+
+    private val stateHistory = mutableListOf<StateSnapshot>()
+    private var stateIndex = 0
+    private val maxSnapshots = 500
+
+    /**
+     * Callback invoked when the IDE sends an INJECT_ACTION [DebugCommand].
+     *
+     * SET_STATE commands are handled automatically via [MvvMate.viewModelRegistry].
+     */
+    var onCommandReceived: ((DebugCommand) -> Unit)? = null
+
+    private fun handleCommand(command: DebugCommand) {
+        val bridge = MvvMate.debugBridge[command.viewModelName] ?: return
+
+        when (command.type) {
+            CommandType.SET_STATE -> {
+                val targetIndex = command.payload.toIntOrNull() ?: return
+                val snapshot = synchronized(stateHistory) {
+                    stateHistory.find { it.index == targetIndex }
+                } ?: return
+                bridge.restoreState(snapshot.state)
+            }
+
+            CommandType.INJECT_ACTION -> {
+                bridge.injectAction(command.payload)
+                onCommandReceived?.invoke(command)
+            }
+        }
+    }
+
     init {
         scope.launch {
             try {
@@ -39,18 +78,36 @@ class RemoteDebugLogger(
                     url("ws://$host:$port$path")
                 }
                 
+                // Launch a coroutine to receive IDE→app commands
+                launch {
+                    try {
+                        val ws = session ?: return@launch
+                        while (isActive) {
+                            val frame = ws.incoming.receiveCatching().getOrNull() ?: break
+                            if (frame is Frame.Text) {
+                                try {
+                                    val command = Json.decodeFromString<DebugCommand>(frame.readText())
+                                    handleCommand(command)
+                                } catch (_: Exception) {
+                                    // Not a DebugCommand, ignore
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {
+                        // WebSocket closed or error
+                    }
+                }
+
                 // Keep sending whatever comes in the channel
                 for (payload in payloadChannel) {
                     val jsonString = Json.encodeToString(payload)
                     session?.send(Frame.Text(jsonString))
                 }
             } catch (e: Exception) {
-                // Silently fail or fallback to print logger if connection fails
                 println("MVVMate RemoteDebugLogger failed to connect to ws://$host:$port$path : ${e.message}")
                 
-                // Still consume channel to avoid memory leaks
                 for (payload in payloadChannel) {
-                   // do nothing
+                   // do nothing — consume to avoid memory leak
                 }
             }
         }
@@ -68,7 +125,15 @@ class RemoteDebugLogger(
     }
 
     override fun logStateChange(viewModelName: String, oldState: UiState, newState: UiState) {
-         sendPayload(
+        // Store actual state object for time-travel
+        synchronized(stateHistory) {
+            stateHistory.add(StateSnapshot(stateIndex++, viewModelName, newState))
+            if (stateHistory.size > maxSnapshots) {
+                stateHistory.removeAt(0)
+            }
+        }
+
+        sendPayload(
             DebugPayload(
                 type = PayloadType.STATE_CHANGE,
                 viewModelName = viewModelName,

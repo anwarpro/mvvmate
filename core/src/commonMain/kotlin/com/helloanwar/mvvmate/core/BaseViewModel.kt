@@ -57,6 +57,18 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
      * @param action The user action to handle.
      */
     fun handleAction(action: A) {
+        // Auto-register for time-travel and action injection on first action
+        if (MvvMate.isDebug && logTag !in MvvMate.debugBridge) {
+            MvvMate.debugBridge[logTag] = object : MvvMate.DebugBridge {
+                override fun restoreState(state: UiState) = debugForceSetState(state)
+                override fun injectAction(payload: String) {
+                    val actionToInject = mapDebugAction(payload)
+                    if (actionToInject != null) {
+                        handleAction(actionToInject)
+                    }
+                }
+            }
+        }
         MvvMate.logger.logAction(logTag, action)
         viewModelScope.launch {
             try {
@@ -69,6 +81,22 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
             }
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        MvvMate.debugBridge.remove(logTag)
+    }
+
+    /**
+     * Maps a string payload (from the remote debugger) to an actual [UiAction].
+     *
+     * Override this in your ViewModel to support automatic action injection
+     * from the Studio Plugin's Action Injector.
+     *
+     * @param payload The string payload sent from the IDE.
+     * @return The [UiAction] to handle, or null if unknown.
+     */
+    protected open fun mapDebugAction(payload: String): A? = null
 
     /**
      * Abstract method to be implemented by subclasses to handle the specific action logic.
@@ -86,5 +114,23 @@ abstract class BaseViewModel<S : UiState, A : UiAction>(
      */
     protected open fun onError(action: A, error: Exception) {
         // Default: no-op. Subclasses can override for custom error handling.
+    }
+
+    /**
+     * Force-set the state for debug/time-travel purposes.
+     *
+     * This allows the remote debugger to restore a previous state snapshot.
+     * Only works when [MvvMate.isDebug] is true.
+     *
+     * @param state The state object to restore, must be the same type [S].
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun debugForceSetState(state: UiState) {
+        if (!MvvMate.isDebug) return
+        try {
+            _state.value = state as S
+        } catch (_: ClassCastException) {
+            // Type mismatch — ignore silently
+        }
     }
 }

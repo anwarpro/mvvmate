@@ -41,4 +41,18 @@ class HomeViewModel : BaseViewModelWithEffect<HomeState, HomeAction, HomeEffect>
             }
         }
     }
+
+    override fun mapDebugAction(payload: String): HomeAction? {
+        return when {
+            payload == "Reset" -> HomeAction.Reset
+            payload == "Increment" -> HomeAction.Increment
+            payload == "Decrement" -> HomeAction.Decrement
+            payload == "LoadData" -> HomeAction.LoadData
+            payload.startsWith("AddItem") -> {
+                val item = payload.substringAfter("item=", "New Item").substringBefore(")")
+                HomeAction.AddItem(item)
+            }
+            else -> null
+        }
+    }
 }

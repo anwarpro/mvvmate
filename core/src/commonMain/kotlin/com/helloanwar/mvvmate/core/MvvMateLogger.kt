@@ -113,4 +113,25 @@ object MvvMate {
      * When false, state change logging is suppressed for performance.
      */
     var isDebug: Boolean = false
+
+    /**
+     * Interface for the remote debugger to interact with a ViewModel.
+     */
+    interface DebugBridge {
+        /** Restore a specific state snapshot. */
+        fun restoreState(state: UiState)
+        /** Inject an action from a string payload. */
+        fun injectAction(payload: String)
+    }
+
+    /**
+     * Registry of ViewModel debug bridges.
+     *
+     * ViewModels auto-register here when [isDebug] is true.
+     * The [RemoteDebugLogger][com.helloanwar.mvvmate.debug.RemoteDebugLogger]
+     * uses this to restore state and inject actions.
+     *
+     * Key = ViewModel logTag.
+     */
+    val debugBridge: MutableMap<String, DebugBridge> = mutableMapOf()
 }
