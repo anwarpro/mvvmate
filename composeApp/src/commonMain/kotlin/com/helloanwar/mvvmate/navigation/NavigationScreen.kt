@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 enum class Screen {
-    Main, CoreExample, NetworkExample, ActionsExample, NetworkActionsExample, AiExample
+    Main, CoreExample, NetworkExample, ActionsExample, NetworkActionsExample, AiExample, FormsExample
 }
 
 data class ExampleItem(
@@ -73,6 +73,12 @@ fun MainMenuScreen(
             subtitle = "BaseNetworkActionsViewModel — Combined Network Calls & Action Dispatching",
             emoji = "🚀",
             screen = Screen.NetworkActionsExample
+        ),
+        ExampleItem(
+            title = "Forms",
+            subtitle = "Declarative Form Validation — MVVMate UiState Integration",
+            emoji = "📝",
+            screen = Screen.FormsExample
         )
     )
 

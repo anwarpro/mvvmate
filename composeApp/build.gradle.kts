@@ -77,9 +77,12 @@ kotlin {
             implementation(project(":actions"))
             implementation(project(":network-actions"))
             implementation(project(":remote-debug"))
+            implementation(project(":forms"))
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.koog.agents)
+
+            implementation(libs.material.icons.extended)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

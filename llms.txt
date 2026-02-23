@@ -137,3 +137,64 @@ MVVMate lets LLMs drive the UI. If building an Agentic UI component, set up the 
 * DO NOT build deeply nested State classes. The State data class should be mostly primitive types or lists. Use `val computed: Int get() = ...` for derived data to avoid inconsistencies.
 * DO NOT use `sealed class` for actions/effects, prefer `sealed interface`.
 * DO NOT manually map `Throwable` to strings during network errors. `AppError` handles this inside `onError = { error -> ... }` where `error.message` is perfectly readable.
+* DO NOT hold state in local variables in Composable screens; always hoist it into `FormField` within the `UiState` via the ViewModel.
+
+---
+
+## 8. ViewModel Testing (`mvvmate-testing`)
+Testing in MVVMate uses a Turbine-based DSL. ALWAYS use `runTest` from `kotlinx-coroutines-test`.
+
+### Rule 4: Test states and effects in chronological order
+* For simple ViewModels: Use `viewModel.test { ... }`
+* For ViewModels with side effects: Use `viewModel.testEffects { ... }`
+
+```kotlin
+@Test
+fun testExample() = runTest {
+    val viewModel = ExampleViewModel()
+    viewModel.testEffects {
+        expectState { !it.isLoading }
+        dispatchAction(ExampleAction.LoadData)
+        expectState { it.isLoading }
+        val effect = expectEffectClass<ExampleEffect.ShowToast>()
+        expectState { !it.isLoading }
+    }
+}
+```
+
+---
+
+## 9. Declarative Form Validation (`mvvmate-forms`)
+A type-safe way to manage form state and validation logic entirely within the `UiState`.
+
+### FormField<T>
+Fields in your state should be of type `FormField<T>`.
+```kotlin
+data class FormState(
+    val email: FormField<String> = FormField(""),
+    val age: FormField<String> = FormField("")
+) : UiState
+```
+
+### Validation with Validators
+Use `Validators` for common rules. Update state using `setValue` to run validation inline.
+
+```kotlin
+// Inside ViewModel onAction
+is Action.EmailChanged -> updateState {
+    copy(email = email.setValue(action.email, Validators.required(), Validators.email()))
+}
+
+// To show errors only after clicking submit
+is Action.Submit -> updateState {
+    copy(email = email.markTouched(Validators.required(), Validators.email()))
+}
+```
+
+### Built-in Validators
+* `Validators.required(message)`
+* `Validators.email(message)`
+* `Validators.digitsRequired(message)` - strictly numbers (0-9)
+* `Validators.decimalRequired(message)` - valid decimal format
+* `Validators.minLength(len)`, `Validators.maxLength(len)`, `Validators.pattern(regex)`
+

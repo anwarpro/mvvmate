@@ -14,6 +14,7 @@ import com.helloanwar.mvvmate.navigation.Screen
 import com.helloanwar.mvvmate.networkactionsexample.NetworkActionsExampleScreen
 import com.helloanwar.mvvmate.aiexample.SmartProfileScreen
 import com.helloanwar.mvvmate.networkexample.NetworkExampleScreen
+import com.helloanwar.mvvmate.formsexample.FormsExampleScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.helloanwar.mvvmate.core.MvvMate
 import com.helloanwar.mvvmate.debug.RemoteDebugLogger
@@ -54,6 +55,10 @@ fun App() {
                 )
 
                 Screen.NetworkActionsExample -> NetworkActionsExampleScreen(
+                    onBack = { currentScreen = Screen.Main }
+                )
+                
+                Screen.FormsExample -> FormsExampleScreen(
                     onBack = { currentScreen = Screen.Main }
                 )
             }
