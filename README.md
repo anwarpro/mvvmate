@@ -22,6 +22,7 @@ A minimal, type-safe state management library for **Compose Multiplatform**, bui
 |--------|----------|---------|
 | **core** | `com.helloanwar.mvvmate:core` | State management, actions, side effects |
 | **testing** | `com.helloanwar.mvvmate:testing` | Flow testing DSL for ViewModels with `turbine` |
+| **forms** | `com.helloanwar.mvvmate:forms` | Declarative, type-safe form validation for UiState |
 | **network** | `com.helloanwar.mvvmate:network` | Network calls with retry, timeout, cancellation |
 | **actions** | `com.helloanwar.mvvmate:actions` | Serial, parallel, chained, batch action dispatching |
 | **network-actions** | `com.helloanwar.mvvmate:network-actions` | Combined network + actions capabilities |
@@ -222,6 +223,72 @@ fun testLoginViewModel() = runTest {
 
         // Assert ending state
         expectState { !it.isLoading }
+    }
+}
+```
+
+## Form Validation
+
+MVVMate provides a declarative, type-safe validation system through the `forms` module.
+
+```kotlin
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("com.helloanwar.mvvmate:forms:<version>")
+        }
+    }
+}
+```
+
+### 1. Define Form State
+Use `FormField<T>` inside your `UiState`:
+
+```kotlin
+data class RegistrationState(
+    val email: FormField<String> = FormField(""),
+    val age: FormField<String> = FormField(""),
+    val isSubmitting: Boolean = false
+) : UiState {
+    val isFormValid: Boolean get() = email.isValid && age.isValid
+}
+```
+
+### 2. Update and Validate
+Use `setValue` and built-in validators to cleanly update state and run validation rules inline:
+
+```kotlin
+class RegistrationViewModel : BaseViewModel<RegistrationState, RegistrationAction>(RegistrationState()) {
+    override suspend fun onAction(action: RegistrationAction) {
+        when (action) {
+            is RegistrationAction.EmailChanged -> updateState {
+                copy(email = email.setValue(
+                    newValue = action.email, 
+                    Validators.required(), 
+                    Validators.email()
+                ))
+            }
+            is RegistrationAction.AgeChanged -> updateState {
+                copy(age = age.setValue(
+                    newValue = action.age,
+                    Validators.required(),
+                    Validators.digitsRequired("Must be a valid number")
+                ))
+            }
+            RegistrationAction.Submit -> {
+                if (state.value.isFormValid) {
+                    // Proceed with submission
+                } else {
+                    // Mark all fields as touched to show errors
+                    updateState {
+                        copy(
+                            email = email.markTouched(Validators.required(), Validators.email()),
+                            age = age.markTouched(Validators.required(), Validators.digitsRequired("Must be a valid number"))
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 ```
