@@ -34,4 +34,5 @@ include(":network")
 include(":actions")
 include(":network-actions")
 include(":remote-debug")
-include(":studio-plugin") // Add this instead
+include(":studio-plugin")
+include(":testing")

@@ -1,0 +1,139 @@
+# MVVMate - LLM Agent Instructions & Context
+
+This file contains the complete context, rules, and best practices for writing code using the `MVVMate` library in a Kotlin/Compose Multiplatform environment. As an AI Agent, adhere STRICTLY to these rules when writing or modifying code in this repository or in projects that use MVVMate.
+
+## 1. Core Concepts
+MVVMate is a minimal, type-safe state management library based on the Model-View-Intent (MVI) pattern.
+
+Every screen MUST define a strict contract consisting of:
+1. **State (`UiState`)**: A flat `data class` representing everything the UI needs to render.
+2. **Action (`UiAction`)**: A `sealed interface` representing user intentions/events.
+3. **Effect (`UiEffect`)** (Optional): A `sealed interface` for one-time events like navigation or toasts.
+
+### Rule 1: Always define contracts first before ViewModels
+```kotlin
+data class ExampleState(
+    val isLoading: Boolean = false,
+    val data: String = "",
+    val error: String? = null
+) : UiState
+
+sealed interface ExampleAction : UiAction {
+    data object LoadData : ExampleAction
+    data class UpdateInput(val text: String) : ExampleAction
+}
+
+sealed interface ExampleEffect : UiEffect {
+    data class ShowToast(val message: String) : ExampleEffect
+}
+```
+
+---
+
+## 2. Choosing the Right BaseViewModel
+Select the base class based on the screen's requirements.
+
+* `BaseViewModel<S, A>`: Simple state and actions.
+* `BaseViewModelWithEffect<S, A, E>`: Needs one-time navigation/toasts.
+* `BaseNetworkViewModel<S, A>`: Needs to make API network calls, manages loading state, retry logic, timeouts, and `AppError`.
+* `BaseActionsViewModel<S, A>`: Needs to run multiple actions sequentially, in parallel, chained, or batched.
+* `BaseNetworkActionsViewModel<S, A>`: Needs both networking tools and multi-action routing.
+
+### Rule 2: State updates must be done using `updateState`
+Never mutate state directly. Keep state flat, use `copy()`:
+```kotlin
+updateState { copy(isLoading = true, error = null) }
+```
+
+### Rule 3: Error handling uses `onError` automatically
+If `onAction` throws an exception, `onError` is automatically called. Always override `onError` for global safety, especially in `BaseViewModel` or `BaseViewModelWithEffect`. (Note: `CancellationException` is safely ignored).
+
+---
+
+## 3. Network Calls (BaseNetworkViewModel)
+When doing API requests, ALWAYS use the built-in `performNetworkCall` or `performNetworkCallWithRetry`.
+
+### Network Loading State Management
+You must override these manually in your ViewModel to tell MVVMate how to show global loading indicators:
+```kotlin
+override fun ExampleState.setGlobalLoadingState() = copy(isLoading = true)
+override fun ExampleState.resetGlobalLoadingState() = copy(isLoading = false)
+```
+*(For partial loading, override `setPartialLoadingState` and `resetPartialLoadingState` which manage a `loadingKeys: Set<String>` in your state).*
+
+### Writing a Network Action
+```kotlin
+private suspend fun loadData() {
+    performNetworkCallWithRetry<MyData>(
+        retries = 3,
+        isGlobal = true, // uses setGlobalLoadingState automatically
+        onSuccess = { data ->
+            updateState { copy(data = data, error = null) }
+        },
+        onError = { error -> // Note: error is an AppError instance
+            updateState { copy(error = error.message) }
+        },
+        networkCall = { api.getData() }
+    )
+}
+```
+
+---
+
+## 4. Multi-Action Dispatching (BaseActionsViewModel)
+If an action has distinct steps, break them into smaller `UiAction` classes and dispatch them.
+
+* `dispatchActionsInSeries(actions)`: Runs one after the other. Wait included.
+* `dispatchActionsInParallel(actions)`: Runs all concurrently. Wait included.
+* `dispatchBatchActions(actions)`: Fire and forget immediately.
+* `dispatchChainedActions(actions, initialData)`: Data pipeline, passing result from `i` to `i+1`.
+
+---
+
+## 5. UI Integration (Compose)
+Never pass ViewModels down your compose tree. Consume state and pass lambda callbacks or dispatch actions.
+
+```kotlin
+@Composable
+fun ExampleScreen(
+    viewModel: ExampleViewModel = viewModel(),
+    onNavigateForward: () -> Unit
+) {
+    val state by viewModel.state.collectAsState()
+
+    // Handle side effects (navigation, toasts)
+    LaunchedEffect(Unit) {
+        viewModel.sideEffects.collect { effect ->
+            when (effect) {
+                is ExampleEffect.ShowToast -> { /* show snackbar */ }
+            }
+        }
+    }
+
+    // UI Content
+    if (state.isLoading) CircularProgressIndicator()
+    
+    Button(onClick = { viewModel.handleAction(ExampleAction.LoadData) }) {
+        Text("Load")
+    }
+}
+```
+
+---
+
+## 6. AI Agent Integration (Agentic UI)
+MVVMate lets LLMs drive the UI. If building an Agentic UI component, set up the `AiActionBridge` and `AiActionPolicy`.
+
+1. **Policy**: Strictly define what actions an LLM is *allowed* to take. Block sensitive operations like `DeleteAccount` or `Checkout`.
+2. **Bridge**: Provide the parser to convert LLM output into sealed classes, and a redactor to hide PII before sending the state back to the LLM.
+
+---
+
+## 7. Strict Best Practices / DO NOT DOs
+* DO NOT write network `try/catch` manually if inheriting `BaseNetworkViewModel`. Let `performNetworkCall` handle it.
+* DO NOT expose `MutableStateFlow` or mutators to the Compose UI. UI must call `handleAction(Action)`.
+* DO NOT pass `Context` or `NavController` or Android-specific APIs into the ViewModel. Use `SideEffects` instead.
+* DO NOT forget to use `withContext(Dispatchers.Default)` for heavy computations instead of blocking the main thread inside `onAction`.
+* DO NOT build deeply nested State classes. The State data class should be mostly primitive types or lists. Use `val computed: Int get() = ...` for derived data to avoid inconsistencies.
+* DO NOT use `sealed class` for actions/effects, prefer `sealed interface`.
+* DO NOT manually map `Throwable` to strings during network errors. `AppError` handles this inside `onError = { error -> ... }` where `error.message` is perfectly readable.

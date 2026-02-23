@@ -21,6 +21,7 @@ A minimal, type-safe state management library for **Compose Multiplatform**, bui
 | Module | Artifact | Purpose |
 |--------|----------|---------|
 | **core** | `com.helloanwar.mvvmate:core` | State management, actions, side effects |
+| **testing** | `com.helloanwar.mvvmate:testing` | Flow testing DSL for ViewModels with `turbine` |
 | **network** | `com.helloanwar.mvvmate:network` | Network calls with retry, timeout, cancellation |
 | **actions** | `com.helloanwar.mvvmate:actions` | Serial, parallel, chained, batch action dispatching |
 | **network-actions** | `com.helloanwar.mvvmate:network-actions` | Combined network + actions capabilities |
@@ -160,6 +161,67 @@ class LoginViewModel : BaseViewModelWithEffect<LoginState, LoginAction, LoginEff
                 }
             }
         }
+    }
+}
+```
+
+## Testing
+
+MVVMate provides a robust flow-testing DSL based on CashApp's Turbine framework using the `testing` artifact.
+
+Add the optional dependency:
+```kotlin
+kotlin {
+    sourceSets {
+        commonTest.dependencies {
+            implementation("com.helloanwar.mvvmate:testing:<version>")
+        }
+    }
+}
+```
+
+### Standard ViewModel Testing
+For a simple `BaseViewModel` containing only states and actions:
+
+```kotlin
+@Test
+fun testCounterViewModel() = runTest {
+    val viewModel = CounterViewModel()
+
+    viewModel.test {
+        // Automatically skips the initial emitted state or you can assert it:
+        expectStateEquals(CounterState(count = 0))
+
+        dispatchAction(CounterAction.Increment)
+        expectStateEquals(CounterState(count = 1))
+
+        dispatchAction(CounterAction.Decrement)
+        expectState { it.count == 0 } // Assert lambda
+    }
+}
+```
+
+### Side Effect Testing
+For a `BaseViewModelWithEffect`, you can assert `State` and `Effect` emissions in chronological order:
+
+```kotlin
+@Test
+fun testLoginViewModel() = runTest {
+    val viewModel = LoginViewModel()
+
+    viewModel.testEffects {
+        // Assert initial state
+        expectState { !it.isLoading }
+
+        // Start operation
+        dispatchAction(LoginAction.Submit("test@test.com", "pass"))
+        expectState { it.isLoading }
+
+        // Wait for the simulated effect, assert exact type
+        val effect = expectEffectClass<LoginEffect.NavigateToHome>()
+
+        // Assert ending state
+        expectState { !it.isLoading }
     }
 }
 ```
