@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/anwarpro/mvvmate/compare/v0.2.2...v0.2.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* resolve synchronized unresolved reference in commonMain for remote-debug ([03ea9bb](https://github.com/anwarpro/mvvmate/commit/03ea9bb1a3597f71c23fbb80d5ec1ea2db879fb9))
+
 ## [0.2.2](https://github.com/anwarpro/mvvmate/compare/v0.2.1...v0.2.2) (2026-02-24)
 
 
