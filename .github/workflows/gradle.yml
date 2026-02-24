@@ -10,15 +10,13 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_call:
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  test-build:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3

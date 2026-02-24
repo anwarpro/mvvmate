@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -71,136 +72,140 @@ fun TimeTravelPanel(
     val currentSnapshot = stateHistory.getOrNull(currentIndex)
     val previousSnapshot = if (currentIndex > 0) stateHistory.getOrNull(currentIndex - 1) else null
 
-    Column(modifier.fillMaxSize().padding(12.dp)) {
-        // Header
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Time Travel",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Text(
-                "${currentIndex + 1} / ${stateHistory.size}",
-                color = Color.Gray,
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace
-            )
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        // Navigation buttons
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedButton(
-                onClick = { currentIndex = 0 },
-                enabled = currentIndex > 0,
-                modifier = Modifier.padding(end = 4.dp)
-            ) {
-                Text("⏮ First")
-            }
-            OutlinedButton(
-                onClick = { if (currentIndex > 0) currentIndex-- },
-                enabled = currentIndex > 0,
-                modifier = Modifier.padding(end = 4.dp)
-            ) {
-                Text("⏪ Rewind")
-            }
-
-            // Slider
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(32.dp)
-                    .padding(horizontal = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                SliderBar(
-                    value = currentIndex,
-                    max = stateHistory.lastIndex,
-                    onValueChange = { currentIndex = it }
-                )
-            }
-
-            OutlinedButton(
-                onClick = { if (currentIndex < stateHistory.lastIndex) currentIndex++ },
-                enabled = currentIndex < stateHistory.lastIndex,
-                modifier = Modifier.padding(start = 4.dp)
-            ) {
-                Text("Forward ⏩")
-            }
-            OutlinedButton(
-                onClick = { currentIndex = stateHistory.lastIndex },
-                enabled = currentIndex < stateHistory.lastIndex,
-                modifier = Modifier.padding(start = 4.dp)
-            ) {
-                Text("Last ⏭")
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        // Apply to device button
-        if (currentSnapshot != null) {
+    LazyColumn(modifier.fillMaxSize().padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            // Header
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        currentSnapshot.payload.viewModelName,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
-                    Text(
-                        "Snapshot #${currentSnapshot.index}",
-                        color = Color.Gray,
-                        fontSize = 11.sp
+                Text(
+                    "Time Travel",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    "${currentIndex + 1} / ${stateHistory.size}",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+
+        item {
+            // Navigation buttons
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = { currentIndex = 0 },
+                    enabled = currentIndex > 0,
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    Text("⏮ First")
+                }
+                OutlinedButton(
+                    onClick = { if (currentIndex > 0) currentIndex-- },
+                    enabled = currentIndex > 0,
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    Text("⏪ Rewind")
+                }
+
+                // Slider
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(32.dp)
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SliderBar(
+                        value = currentIndex,
+                        max = stateHistory.lastIndex,
+                        onValueChange = { currentIndex = it }
                     )
                 }
-                DefaultButton(
-                    onClick = {
-                        RemoteDebugServer.sendCommand(
-                            DebugCommand(
-                                type = CommandType.SET_STATE,
-                                viewModelName = currentSnapshot.payload.viewModelName,
-                                payload = currentSnapshot.index.toString()
-                            )
-                        )
-                    }
+
+                OutlinedButton(
+                    onClick = { if (currentIndex < stateHistory.lastIndex) currentIndex++ },
+                    enabled = currentIndex < stateHistory.lastIndex,
+                    modifier = Modifier.padding(start = 4.dp)
                 ) {
-                    Text("📲 Apply to Device")
+                    Text("Forward ⏩")
+                }
+                OutlinedButton(
+                    onClick = { currentIndex = stateHistory.lastIndex },
+                    enabled = currentIndex < stateHistory.lastIndex,
+                    modifier = Modifier.padding(start = 4.dp)
+                ) {
+                    Text("Last ⏭")
                 }
             }
         }
 
-        Spacer(Modifier.height(12.dp))
-
-        // State diff between previous and current snapshot
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .border(1.dp, Color(0xFF444444), RoundedCornerShape(8.dp))
-                .background(Color(0xFF1E1E1E), RoundedCornerShape(8.dp))
-                .padding(12.dp)
-        ) {
-            LazyColumn(Modifier.fillMaxSize()) {
-                item {
-                    if (currentSnapshot != null) {
-                        StateDiffView(
-                            oldStateString = previousSnapshot?.payload?.payload
-                                ?: currentSnapshot.payload.additionalData,
-                            newStateString = currentSnapshot.payload.payload
+        item {
+            // Apply to device button
+            if (currentSnapshot != null) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            currentSnapshot.payload.viewModelName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
                         )
+                        Text(
+                            "Snapshot #${currentSnapshot.index}",
+                            color = Color.Gray,
+                            fontSize = 11.sp
+                        )
+                    }
+                    DefaultButton(
+                        onClick = {
+                            RemoteDebugServer.sendCommand(
+                                DebugCommand(
+                                    type = CommandType.SET_STATE,
+                                    viewModelName = currentSnapshot.payload.viewModelName,
+                                    payload = currentSnapshot.index.toString()
+                                )
+                            )
+                        }
+                    ) {
+                        Text("📲 Apply to Device")
+                    }
+                }
+            }
+        }
+
+        item {
+            // State diff between previous and current snapshot
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(300.dp) // Fixed height inside LazyColumn
+                    .border(1.dp, Color(0xFF444444), RoundedCornerShape(8.dp))
+                    .background(Color(0xFF1E1E1E), RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                LazyColumn(Modifier.fillMaxSize()) {
+                    item {
+                        if (currentSnapshot != null) {
+                            StateDiffView(
+                                oldStateString = previousSnapshot?.payload?.payload
+                                    ?: currentSnapshot.payload.additionalData,
+                                newStateString = currentSnapshot.payload.payload
+                            )
+                        }
                     }
                 }
             }

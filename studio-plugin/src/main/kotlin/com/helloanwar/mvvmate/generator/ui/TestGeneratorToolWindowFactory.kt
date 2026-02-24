@@ -2,13 +2,18 @@ package com.helloanwar.mvvmate.generator.ui
 
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import com.intellij.diagnostic.LoadingState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,7 +53,12 @@ fun TestGeneratorScreen(project: Project) {
 
     var isGenerating by remember { androidx.compose.runtime.mutableStateOf(false) }
 
-    val testGenerator = remember { com.helloanwar.mvvmate.generator.AiTestGenerator() }
+    if (!LoadingState.COMPONENTS_LOADED.isOccurred) {
+        Box(Modifier.fillMaxSize()) {
+             Text("Loading MVVMate Studio...", modifier = Modifier.padding(16.dp))
+        }
+        return
+    }
 
     androidx.compose.runtime.LaunchedEffect(isGenerating) {
         if (isGenerating) {
@@ -57,6 +67,8 @@ fun TestGeneratorScreen(project: Project) {
             val targetClassName = targetClassFieldState.text.toString()
             val target = targetClassName.ifBlank { "GivenViewModel" }
             
+            // Instantiate only when needed to avoid early class loading issues
+            val testGenerator = com.helloanwar.mvvmate.generator.AiTestGenerator()
             val result = testGenerator.generateTest(crashTrace, target, apiKey)
             generatedTestFieldState.edit {
                 replace(0, length, result)
@@ -65,57 +77,61 @@ fun TestGeneratorScreen(project: Project) {
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            "MVVMate AI Test Generator",
-            style = JewelTheme.defaultTextStyle
-        )
-        Spacer(Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            TextField(
-                state = apiKeyFieldState,
-                placeholder = { Text("Gemini API Key") },
-                modifier = Modifier.weight(1f),
-            )
-            TextField(
-                state = targetClassFieldState,
-                placeholder = { Text("Target Class Name (e.g., LoginViewModel)") },
-                modifier = Modifier.weight(1f)
+        item {
+            Text(
+                "MVVMate AI Test Generator",
+                style = JewelTheme.defaultTextStyle
             )
         }
 
-        Spacer(Modifier.height(8.dp))
-
-        TextArea(
-            state = crashTraceFieldState,
-            placeholder = { Text("Paste AiCrashTrace JSON Output") },
-            modifier = Modifier.fillMaxWidth().weight(1f)
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        DefaultButton(
-            onClick = {
-                isGenerating = true
-            },
-            enabled = apiKeyFieldState.text.isNotBlank() && crashTraceFieldState.text.isNotBlank() && !isGenerating,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(if (isGenerating) "Generating..." else "✨ Generate Test")
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextField(
+                    state = apiKeyFieldState,
+                    placeholder = { Text("Gemini API Key") },
+                    modifier = Modifier.weight(1f),
+                )
+                TextField(
+                    state = targetClassFieldState,
+                    placeholder = { Text("Target Class Name (e.g., LoginViewModel)") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
-        Spacer(Modifier.height(16.dp))
+        item {
+            TextArea(
+                state = crashTraceFieldState,
+                placeholder = { Text("Paste AiCrashTrace JSON Output") },
+                modifier = Modifier.fillMaxWidth().height(200.dp)
+            )
+        }
 
-        TextArea(
-            state = generatedTestFieldState,
-            placeholder = { Text("Generated Kotlin Unit Test") },
-            modifier = Modifier.fillMaxWidth().weight(1f)
-        )
+        item {
+            DefaultButton(
+                onClick = {
+                    isGenerating = true
+                },
+                enabled = apiKeyFieldState.text.isNotBlank() && crashTraceFieldState.text.isNotBlank() && !isGenerating,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (isGenerating) "Generating..." else "✨ Generate Test")
+            }
+        }
+
+        item {
+            TextArea(
+                state = generatedTestFieldState,
+                placeholder = { Text("Generated Kotlin Unit Test") },
+                modifier = Modifier.fillMaxWidth().height(300.dp)
+            )
+        }
     }
 }

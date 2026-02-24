@@ -15,10 +15,10 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test-build:
     uses: ./.github/workflows/gradle.yml
   deploy:
-    needs: build
+    needs: test-build
     name: Build
     runs-on: macos-latest
     steps:

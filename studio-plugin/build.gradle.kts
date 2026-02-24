@@ -15,7 +15,7 @@ plugins {
 }
 
 group = providers.gradleProperty("pluginGroup").getOrElse("com.yourcompany.plugin")
-version = providers.gradleProperty("pluginVersion").getOrElse("1.0.0")
+version = libs.versions.mvvmate.version.get()
 
 kotlin {
     jvmToolchain(21)
@@ -80,7 +80,7 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         name = providers.gradleProperty("pluginName")
-        version = providers.gradleProperty("pluginVersion")
+        version = libs.versions.mvvmate.version.get()
 
         // Extracts description from the README.md located in the studio-plugin directory
         description = "This is the description"
@@ -111,6 +111,7 @@ intellijPlatform {
 
 tasks {
     publishPlugin {
+
     }
 }
 
