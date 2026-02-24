@@ -16,7 +16,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class RemoteDebugLogger(
