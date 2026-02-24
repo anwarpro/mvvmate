@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.2.2](https://github.com/anwarpro/mvvmate/compare/v0.2.1...v0.2.2) (2026-02-24)
+
+
+### Features
+
+* add AI Test Generator studio plugin ([5e2cb55](https://github.com/anwarpro/mvvmate/commit/5e2cb55325d2ac627cd1434bc0b5618fa7ab972f))
+* Add forms example screen and update llms.txt context with testing and forms sections ([0fa2392](https://github.com/anwarpro/mvvmate/commit/0fa23921522a2c47c000311b494f4595f18afb9a))
+* Add mvvmate-forms declarative form validation module ([5da8d72](https://github.com/anwarpro/mvvmate/commit/5da8d72d0e5336e3eabcdaf8b83c4ae43ec99ee8))
+* Add testing module for MVVMate ViewModels ([c16018b](https://github.com/anwarpro/mvvmate/commit/c16018bb208a851b662d72ce755e1cc8023a403c))
+* **ci:** build and attach studio plugin to release assets ([9ff79da](https://github.com/anwarpro/mvvmate/commit/9ff79dab38ee4d8ca143fb8f03f2a3e323c43feb))
+* **debug:** implement automatic action injection and polish time travel UI ([b54078a](https://github.com/anwarpro/mvvmate/commit/b54078a1e6372b34d107d375554ccd2fff625432))
+* **debug:** implement automatic action injection and polish tool window ([9ff79da](https://github.com/anwarpro/mvvmate/commit/9ff79dab38ee4d8ca143fb8f03f2a3e323c43feb))
+* implement AI-powered Logger and Koog Smart Form Autopilot Integration ([245bc3f](https://github.com/anwarpro/mvvmate/commit/245bc3fe7ad747a978c4a615ee0216e5882ea2be))
+* implement real-time remote debugging tool window ([ae5b8d4](https://github.com/anwarpro/mvvmate/commit/ae5b8d4b95a055dda23f16ed617a9fa7fd44381d))
+* Proper Error and Logging ([e7f38ef](https://github.com/anwarpro/mvvmate/commit/e7f38ef6062760e4efcdf96ab1eef969dbda361d))
+* timeline and state diff ([43c990c](https://github.com/anwarpro/mvvmate/commit/43c990c6b8929007d9f2354339142c03e9b86428))
+
+
+### Bug Fixes
+
+* resolve critical bugs in core and network modules ([097f8b3](https://github.com/anwarpro/mvvmate/commit/097f8b3d652bbd4b09517d4ffffc1518fe154da0))
+
 ## [0.2.1](https://github.com/anwarpro/mvvmate/compare/v0.2.0...v0.2.1) (2026-02-22)
 
 
