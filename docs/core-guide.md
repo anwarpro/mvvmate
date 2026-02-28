@@ -339,6 +339,74 @@ Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
 }
 ```
 
+## StateDiffUtil — State Diffing
+
+`StateDiffUtil` computes human-readable diffs between two state snapshots. It works with any `data class` by parsing the `toString()` representation:
+
+```kotlin
+import com.helloanwar.mvvmate.core.StateDiffUtil
+
+val oldState = UsersState(isLoading = false, users = emptyList(), error = null)
+val newState = UsersState(isLoading = true, users = emptyList(), error = null)
+
+// Get list of changed fields
+val changes = StateDiffUtil.diff(oldState, newState)
+// [FieldChange(field=isLoading, oldValue=false, newValue=true)]
+
+// Get a compact summary string
+val summary = StateDiffUtil.diffSummary(oldState, newState)
+// "isLoading: false → true"
+```
+
+> **Note:** `StateDiffUtil` is used internally by `PrintLogger` and `TimelineLogger` to provide concise state change logs instead of dumping the full state.
+
+## TimelineLogger — Chronological Event Recording
+
+`TimelineLogger` records timestamped events into a chronological timeline, useful for debugging complex action sequences and post-mortem analysis:
+
+```kotlin
+import com.helloanwar.mvvmate.core.TimelineLogger
+
+// Create and set as active logger
+val timeline = TimelineLogger(
+    delegate = PrintLogger,  // Also forward to PrintLogger (optional)
+    maxEntries = 500         // Ring buffer size (default: 500)
+)
+MvvMate.logger = timeline
+```
+
+### Querying the Timeline
+
+```kotlin
+// Print full history
+timeline.dump()
+
+// Print last 10 entries
+timeline.dumpLast(10)
+
+// Get entries as a string (for crash reports)
+val report = timeline.formatAsString()
+
+// Filter by ViewModel
+val cartEvents = timeline.getEntriesFor("CartViewModel")
+
+// Reset
+timeline.clear()
+```
+
+### Sample Output
+
+```
+[MVVMate Timeline] 5 entries:
+────────────────────────────────────────────────────────────────
+[+0ms] ▶ CartViewModel :: AddItem
+[+1ms] 🔄 CartViewModel :: items: [] → [Item(id=1)]
+[+2ms] ⚡ CartViewModel :: ShowToast: ShowToast(message=Item added!)
+[+150ms] ▶ CartViewModel :: Checkout
+[+152ms] 🌐 Network[checkout] START
+────────────────────────────────────────────────────────────────
+```
+
 ## AI Autopilot Bridge (Agentic UI)
 
 MVVMate makes it trivial to turn any screen into an "Agentic UI", meaning you can allow an LLM or remote AI Agent to "drive" the application by dispatching standard `UiAction` events instead of relying on real human taps.

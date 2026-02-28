@@ -324,9 +324,12 @@ class ProductsViewModel : BaseNetworkViewModel<ProductsState, ProductsAction>(
 
 | Guide | Description |
 |-------|-------------|
-| [Core Guide](docs/core-guide.md) | BaseViewModel, BaseViewModelWithEffect, contracts, error handling |
+| [Core Guide](docs/core-guide.md) | BaseViewModel, BaseViewModelWithEffect, contracts, error handling, logging |
 | [Network Guide](docs/network-guide.md) | Retry, timeout, cancellation, loading state management, typed errors |
 | [Actions Guide](docs/actions-guide.md) | Serial, parallel, chained, batch action dispatching |
+| [Forms Guide](docs/forms-guide.md) | FormField, validators, declarative form validation |
+| [Testing Guide](docs/testing-guide.md) | Turbine-based DSL for testing ViewModels and side effects |
+| [Remote Debug Guide](docs/remote-debug-guide.md) | Live event streaming, time-travel debugging, action injection |
 | [Best Practices](docs/best-practices.md) | Architecture, state design, testing, logging, Compose integration |
 
 ## Logger Setup

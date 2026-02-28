@@ -148,9 +148,35 @@ Testing in MVVMate uses a Turbine-based DSL. ALWAYS use `runTest` from `kotlinx-
 * For simple ViewModels: Use `viewModel.test { ... }`
 * For ViewModels with side effects: Use `viewModel.testEffects { ... }`
 
+### ViewModelTestScope API (for `BaseViewModel`)
+* `dispatchAction(action)` — dispatch a UiAction under test
+* `expectState { predicate }` — await next state, assert predicate returns true
+* `expectStateEquals(state)` — await next state, assert strict equality
+* `awaitState()` — await and return next state without assertions
+* `skipStates(count)` — consume and ignore next `count` states
+* `cancelAndIgnoreRemainingStates()` — cancel, discard remaining
+
+### ViewModelEffectTestScope API (for `BaseViewModelWithEffect`)
+* `expectState { predicate }` — await, assert next emission is a State
+* `expectStateEquals(state)` — await, assert next State equals expected
+* `expectEffectEquals(effect)` — await, assert next emission is the exact Effect
+* `expectEffectClass<T>()` — await, assert next emission is an Effect of type T
+* `awaitEvent()` — await next emission (State or Effect)
+* `skipEvents(count)` — skip next `count` emissions
+
 ```kotlin
 @Test
-fun testExample() = runTest {
+fun testStateOnly() = runTest {
+    val viewModel = CounterViewModel()
+    viewModel.test {
+        expectStateEquals(CounterState(count = 0))
+        dispatchAction(CounterAction.Increment)
+        expectState { it.count == 1 }
+    }
+}
+
+@Test
+fun testWithEffects() = runTest {
     val viewModel = ExampleViewModel()
     viewModel.testEffects {
         expectState { !it.isLoading }
@@ -168,16 +194,20 @@ fun testExample() = runTest {
 A type-safe way to manage form state and validation logic entirely within the `UiState`.
 
 ### FormField<T>
-Fields in your state should be of type `FormField<T>`.
+Fields in your state should be of type `FormField<T>`. Properties: `value`, `errors: List<String>`, `isTouched`, `isDirty`, `isValid`, `isInvalid`.
 ```kotlin
 data class FormState(
     val email: FormField<String> = FormField(""),
     val age: FormField<String> = FormField("")
-) : UiState
+) : UiState {
+    val isFormValid: Boolean get() = email.isValid && age.isValid && email.isDirty && age.isDirty
+}
 ```
 
 ### Validation with Validators
 Use `Validators` for common rules. Update state using `setValue` to run validation inline.
+`setValue(newValue, vararg validators)` — updates value, runs validators, marks dirty & touched.
+`markTouched(vararg validators)` — marks touched without changing value, runs validators (for submit).
 
 ```kotlin
 // Inside ViewModel onAction
@@ -192,9 +222,96 @@ is Action.Submit -> updateState {
 ```
 
 ### Built-in Validators
-* `Validators.required(message)`
-* `Validators.email(message)`
-* `Validators.digitsRequired(message)` - strictly numbers (0-9)
-* `Validators.decimalRequired(message)` - valid decimal format
-* `Validators.minLength(len)`, `Validators.maxLength(len)`, `Validators.pattern(regex)`
+All return `null` (valid) or error message (invalid). Blank/null values skip validation (except `required`).
+* `Validators.required(message)` — not null or blank (default: "Required")
+* `Validators.email(message)` — standard email format (default: "Invalid email")
+* `Validators.minLength(len, message)` — at least `len` characters
+* `Validators.maxLength(len, message)` — at most `len` characters
+* `Validators.pattern(regex, message)` — matches regex (default: "Invalid format")
+* `Validators.digitsRequired(message)` — strictly digits 0-9 (default: "Must contain only digits")
+* `Validators.decimalRequired(message)` — valid decimal number (default: "Must be a valid decimal number")
+
+### Custom Validators
+`Validator<T>` is a typealias for `(T) -> String?`. Create custom ones:
+```kotlin
+fun passwordStrength(): Validator<String?> = { value ->
+    when {
+        value == null || value.length < 8 -> "Must be at least 8 characters"
+        !value.any { it.isUpperCase() } -> "Must contain an uppercase letter"
+        else -> null
+    }
+}
+```
+
+### Compose — Showing Errors
+```kotlin
+OutlinedTextField(
+    value = state.email.value,
+    onValueChange = { viewModel.handleAction(Action.EmailChanged(it)) },
+    isError = state.email.isTouched && state.email.isInvalid
+)
+if (state.email.isTouched && state.email.isInvalid) {
+    Text(state.email.errors.first(), color = MaterialTheme.colorScheme.error)
+}
+```
+
+---
+
+## 10. Remote Debug (`mvvmate-remote-debug`)
+Connects the running app to the MVVMate Studio Plugin via WebSocket for live event streaming and time-travel debugging.
+
+### Setup
+```kotlin
+val debugLogger = RemoteDebugLogger(
+    host = "127.0.0.1", port = 8080, path = "/ws/mvvmate"
+)
+MvvMate.logger = debugLogger
+MvvMate.isDebug = true
+```
+
+### Rule 5: Override `mapDebugAction` for IDE action injection
+To allow the IDE to inject actions, override this in your ViewModel:
+```kotlin
+override fun mapDebugAction(payload: String): MyAction? {
+    return when (payload) {
+        "LoadData" -> MyAction.LoadData
+        "Refresh" -> MyAction.Refresh
+        else -> null
+    }
+}
+```
+
+### Time-Travel
+The `RemoteDebugLogger` stores up to 500 state snapshots. The IDE can send `SET_STATE` commands to restore any snapshot. ViewModels auto-register in `MvvMate.debugBridge` on first action when `isDebug = true`.
+
+### Production Safety
+* DO NOT ship `remote-debug` in production builds. Guard behind `BuildConfig.DEBUG`.
+* Call `debugLogger.disconnect()` on cleanup.
+
+---
+
+## 11. Timeline Debugging & State Diffing
+
+### TimelineLogger
+Records timestamped events into a chronological timeline. Supports delegate chaining.
+```kotlin
+val timeline = TimelineLogger(delegate = PrintLogger, maxEntries = 500)
+MvvMate.logger = timeline
+
+// After reproducing an issue:
+timeline.dump()             // Print full history
+timeline.dumpLast(10)       // Print last 10 entries
+val report = timeline.formatAsString()  // For crash reports
+timeline.getEntriesFor("CartViewModel") // Filter by ViewModel
+timeline.clear()            // Reset
+```
+
+### StateDiffUtil
+Computes human-readable diffs between state snapshots. Used internally by `PrintLogger` and `TimelineLogger`.
+```kotlin
+val changes = StateDiffUtil.diff(oldState, newState)
+// [FieldChange(field=isLoading, oldValue=false, newValue=true)]
+val summary = StateDiffUtil.diffSummary(oldState, newState)
+// "isLoading: false → true"
+```
 
