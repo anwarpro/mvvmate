@@ -13,7 +13,7 @@ plugins {
 }
 
 configurations.all {
-    resolutionStrategy.force("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+    resolutionStrategy.force("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
 }
 
 kotlin {
