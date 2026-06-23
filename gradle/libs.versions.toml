@@ -33,7 +33,7 @@ jewelstandalone = "0.33.0-253.29795"
 skikoAwtRuntimeAll = "0.9.37.3"
 
 # plugins
-changelog = "2.2.1"
+changelog = "2.5.0"
 intelliJPlatform = "2.10.5"
 
 [libraries]
